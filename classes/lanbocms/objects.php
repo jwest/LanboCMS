@@ -26,6 +26,7 @@ class LanboCMS_Objects {
         return array
         (
             'pages' => NULL,
+            'articles' => NULL,
         );
     }
 
@@ -45,9 +46,9 @@ class LanboCMS_Objects {
             $input = ( $mask & Object::FIELD_WYSIWYG )  ? 'wysiwyg'  : $input;
             $input = ( $mask & Object::FIELD_CHECKBOX ) ? 'checkbox' : $input;
 
-            $fields_inputs[] = View::factory('backend/field/' . $input)
+            $fields_inputs[$field] = View::factory('backend/field/' . $input)
                 ->set('field_name', $field)
-                ->set('value', is_array($obj) ? $obj[$field] : NULL )
+                ->set('value', isset($obj[$field]) ? $obj[$field] : NULL )
                 ->render();
         }
 

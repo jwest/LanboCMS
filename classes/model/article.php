@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_Page extends Model_Object {
+class Model_Article extends Model_Object {
 
 
     /**
@@ -17,9 +17,10 @@ class Model_Page extends Model_Object {
         return array
         (
             'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
+            'updated_at' => Object::SHOW,
             'title' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
-            'description' => Object::SHOW | Object::EDIT | Object::FIELD_TEXTAREA,
             'content' => Object::EDIT | Object::FIELD_WYSIWYG,
+            'tags' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
         );
     }
 

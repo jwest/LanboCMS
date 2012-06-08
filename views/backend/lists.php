@@ -14,7 +14,13 @@
         <?php foreach ( $rows as $id => $row ): ?>
             <tr>
                 <?php foreach ( $fields as $field => $mask ): ?>
-                    <td><?php echo $row[$field]; ?></td>
+                    <td>
+                        <?php if ( $field == 'obj' ): ?>
+                            <span class="label label-info"><?php echo $row[$field]; ?></span>
+                        <?php else: ?>
+                            <?php echo $row[$field]; ?>
+                        <?php endif; ?>
+                    </td>
                 <?php endforeach; ?>
                 <td><a href="<?php echo URL::site( 'admin/' . $object_name .'/edit/' . $id ); ?>"><?php echo __('Edit'); ?></a></td>
                 <td><a href=""><?php echo __('Delete'); ?></a></td>

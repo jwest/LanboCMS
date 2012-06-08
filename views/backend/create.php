@@ -1,11 +1,20 @@
 <h3><?php echo __( $object_name ); ?></h3>
 
+<?php if( !empty($error) ): ?>
+<div class="alert alert-error">
+    <h4 class="alert-heading"><?php echo __('Validation error'); ?></h4>
+    <?php foreach ( $error as $message ): ?>
+        <?php echo __($message); ?><br>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <div class="row">
     <div class="span12">
-        <form class="form-horizontal">
+        <form class="form-horizontal" method="post">
             <fieldset>
-                <?php foreach ( $fields_inputs as $input ): ?>
-                    <div class="control-group">
+                <?php foreach ( $fields_inputs as $field => $input ): ?>
+                    <div class="control-group <?php echo (isset($error[$field])) ? 'error' : ''; ?>">
                         <?php echo $input; ?>
                     </div>
                 <?php endforeach; ?>

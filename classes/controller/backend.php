@@ -18,6 +18,13 @@ class Controller_Backend extends Controller_Template {
 
 
     /**
+     * Object Model
+     * @var Model_Object
+     */
+    public $object_model = NULL;
+
+
+    /**
      * Media path
      */
     public $media_path = 'media';
@@ -30,7 +37,9 @@ class Controller_Backend extends Controller_Template {
     {
         parent::before();
 
-        $this->object_name = $this->request->param('object');
+        $this->object_name = $this->request->param( 'object' );
+        $this->object_model = Object::factory( Inflector::singular($this->object_name) );
+
         $this->template->object_name = $this->object_name;
         $this->template->media_path = $this->media_path;
 
@@ -39,14 +48,14 @@ class Controller_Backend extends Controller_Template {
 
 
     /**
-     * Default action for show pages
+     * Default action for show items
      */
 	public function action_index()
 	{
-        $view = View::factory('backend/lists');
+        $view = View::factory( 'backend/lists' );
         $view->object_name = $this->object_name;
-        $view->fields = Model_Page::items(Object::SHOW);
-        $view->rows = Object::factory('page')->find_obj_all();
+        $view->fields = $this->object_model->items(Object::SHOW);
+        $view->rows = $this->object_model->find_obj_all();
 
         $this->template->content = $view;
 	}
@@ -56,22 +65,33 @@ class Controller_Backend extends Controller_Template {
      */
     public function action_create()
     {
+        $view = View::factory( 'backend/create' );
+        $view->error = NULL;
+
         if ( $this->request->method() === Request::POST )
         {
             try
             {
-                Arr::extract($this->request->post(), Model_Page::items(Object::EDIT));
+                $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
+
+                Object::factory( Inflector::singular($this->object_name) )->create_obj($post);
+
+                $this->request->redirect( 'admin/' . $this->object_name );
             }
             catch(ORM_Validation_Exception $e)
             {
-
+                Database::instance()->rollback();
+                $view->error = $e->errors('validations');
+            }
+            catch(Validation_Exception $e)
+            {
+                Database::instance()->rollback();
+                $view->error = $e->array->errors('validations');
             }
         }
 
-        $view = View::factory('backend/create');
-
         $view->object_name = $this->object_name;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name);
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, $this->request->post() );
 
         $this->template->content = $view;
     }
@@ -81,11 +101,34 @@ class Controller_Backend extends Controller_Template {
      */
     public function action_edit()
     {
-        $obj_name = $this->request->param('id');
+        $obj_name = $this->request->param( 'id' );
 
         $obj = Object::factory( Inflector::singular($this->object_name) )->find_obj($obj_name);
 
-        $view = View::factory('backend/create');
+        $view = View::factory( 'backend/create' );
+        $view->error = NULL;
+
+        if ( $this->request->method() === Request::POST )
+        {
+            try
+            {
+                $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
+
+                Object::factory( Inflector::singular($this->object_name) )->update_obj($post);
+
+                $this->request->redirect( 'admin/' . $this->object_name );
+            }
+            catch(ORM_Validation_Exception $e)
+            {
+                Database::instance()->rollback();
+                $view->error = $e->errors('validations');
+            }
+            catch(Validation_Exception $e)
+            {
+                Database::instance()->rollback();
+                $view->error = $e->array->errors('validations');
+            }
+        }
 
         $view->object_name = $this->object_name;
         $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, $obj);

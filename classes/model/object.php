@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-abstract class Model_Object extends ORM {
+class Model_Object extends ORM {
 
     /**
      * show field
@@ -20,7 +20,7 @@ abstract class Model_Object extends ORM {
     /**
      * if field is main
      */
-    const MAIN = 4;
+    const NOT_NULL = 4;
 
     const FIELD_CHECKBOX = 8;
     const FIELD_TEXTAREA = 16;
@@ -38,7 +38,7 @@ abstract class Model_Object extends ORM {
      * declare table name
      * @var string
      */
-    protected $_table_name = 'objects';
+    protected $_table_name = 'items';
 
 
     /**
@@ -47,7 +47,7 @@ abstract class Model_Object extends ORM {
      * @param $only_keys bool if you have get only fields name
      * @return array
      */
-    public static function items($mask = NULL, $only_keys = false)
+    public static function items($mask = NULL, $only_keys = FALSE)
     {
         $obj = Object::factory('page');
 
@@ -81,7 +81,10 @@ abstract class Model_Object extends ORM {
      * Declare items for pages
      * @return array
      */
-    abstract protected function _items();
+    protected function _items()
+    {
+        return array();
+    }
 
 
     /**
@@ -129,7 +132,7 @@ abstract class Model_Object extends ORM {
         else
         {
             $base_object = self::factory($this->_object_type)
-                ->where('object_id', '=', 0)
+                ->where('object_id', '=', NULL)
                 ->where('name', '=', $name)
                 ->where('object_type', '=', $this->_object_type)
                 ->find();
@@ -167,7 +170,7 @@ abstract class Model_Object extends ORM {
         $output = array();
 
         $base_objects = self::factory($this->_object_type)
-            ->where('object_id', '=', 0)
+            ->where('object_id', '=', NULL)
             ->where('object_type', '=', $this->_object_type)
             ->find_all();
 
@@ -180,38 +183,128 @@ abstract class Model_Object extends ORM {
     }
 
     /**
-     * create value in object
-     * @param Validation $validation
+     * Save object
+     * @param string $name
+     * @param string $value
+     * @param mixed $object_id int or object
+     * @return Object;
      */
-    public function create_obj( Validation $validation = NULL )
+    protected function _save_obj($name, $value, $object_id = NULL)
     {
+        $obj = NULL;
 
+        if ( $object_id instanceof Object )
+        {
+            $obj = $object_id;
+        }
+        else
+        {
+            $obj = ORM::factory('object');
+            $obj->object_id = $object_id;
+        }
+
+        $obj->object_type = $this->_object_type;
+        $obj->name = $name;
+        $obj->value = $value;
+        $obj->save();
+
+        return $obj;
+    }
+
+    /**
+     * create value in object
+     * @param array $values
+     * @return Object
+     */
+    public function create_obj( $values )
+    {
+        Database::instance()->begin();
+
+        $obj = $this->_save_obj( $this->_process_obj($values['obj']), NULL );
+        $items = $this->items();
+
+        unset ( $items['obj'] );
+
+        foreach ( $items as $field => $mask )
+        {
+            if ( $mask & self::NOT_NULL )
+            {
+                $validation = new Validation(array($field => $values[$field]));
+                $validation->rule($field, 'not_empty');
+
+                if ( !$validation->check() )
+                {
+                    throw new Validation_Exception($validation);
+                }
+            }
+
+            $method_name = '_process_' . $field;
+
+            $value = ( method_exists($this, $method_name ) )
+                ? $this->$method_name( $values[$field] )
+                : $values[$field];
+
+            $this->_save_obj($field, $value, $obj->id);
+        }
+
+        Database::instance()->commit();
+
+        return $obj;
     }
 
     /**
      * update values in object
-     * @param Validation $validation
+     * @param array $values
+     * @return Object
      */
-    public function update_obj( Validation $validation = NULL )
+    public function update_obj( $values )
     {
 
     }
 
     /**
      * save objects (create or update)
-     * @param Validation $validation
-     * @return void
+     * @param array $values
+     * @return Object
      */
-    public function save_obj( Validation $validation = NULL )
+    public function save_obj( $values )
     {
-        if( $this->_loaded )
+        if ( $this->_loaded )
         {
-            return $this->update_obj($validation);
+            return $this->update_obj($values, $validation);
         }
         else
         {
-            return $this->create_obj($validation);
+            return $this->create_obj($values, $validation);
         }
+    }
+
+    /**
+     * Process main obj
+     * @param mixed $value
+     * @return string
+     */
+    protected function _process_obj( $value )
+    {
+        $validation = new Validation(array('obj' => $value));
+        $validation->rule('obj', 'not_empty');
+
+        if ( !$validation->check() )
+        {
+            throw new Validation_Exception($validation);
+        }
+
+        return URL::title( $value );
+    }
+
+    /**
+     * Default value for updated_at fields
+     * @param mixed $value
+     * @return string
+     */
+    protected function _proccess_updated_at( $value )
+    {
+        return date('Y-m-d H:i');
     }
 
 } // End Model_Object
