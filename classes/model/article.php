@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 /**
- * Model for pages
+ * Model for articles
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */

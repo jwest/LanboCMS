@@ -47,9 +47,9 @@ class Model_Object extends ORM {
      * @param $only_keys bool if you have get only fields name
      * @return array
      */
-    public static function items($mask = NULL, $only_keys = FALSE)
+    public function items($mask = NULL, $only_keys = FALSE)
     {
-        $obj = Object::factory('page');
+        $obj = Object::factory( $this->_object_type );
 
         if ( $mask === NULL )
         {
@@ -227,9 +227,11 @@ class Model_Object extends ORM {
 
         foreach ( $items as $field => $mask )
         {
+            $value = isset( $values[$field] ) ? $values[$field] : NULL;
+
             if ( $mask & self::NOT_NULL )
             {
-                $validation = new Validation(array($field => $values[$field]));
+                $validation = new Validation(array($field => $value));
                 $validation->rule($field, 'not_empty');
 
                 if ( !$validation->check() )
@@ -241,8 +243,8 @@ class Model_Object extends ORM {
             $method_name = '_process_' . $field;
 
             $value = ( method_exists($this, $method_name ) )
-                ? $this->$method_name( $values[$field] )
-                : $values[$field];
+                ? $this->$method_name( $value )
+                : $value;
 
             $this->_save_obj($field, $value, $obj->id);
         }
@@ -302,7 +304,7 @@ class Model_Object extends ORM {
      * @param mixed $value
      * @return string
      */
-    protected function _proccess_updated_at( $value )
+    protected function _process_updated_at( $value )
     {
         return date('Y-m-d H:i');
     }
