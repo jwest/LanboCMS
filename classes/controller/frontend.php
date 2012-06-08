@@ -24,11 +24,11 @@ class Controller_Frontend extends Controller {
             $name = self::PAGE_INDEX;
         }
 
-        $obj = Object::Factory('page')->get($name);
+        $obj = Object::Factory('page')->find_obj($name);
 
         if ( $obj === NULL )
         {
-            $obj = Object::Factory('page')->get(self::PAGE_404);
+            $obj = Object::Factory('page')->find_obj(self::PAGE_404);
         }
 
         var_dump($obj);

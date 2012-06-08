@@ -26,7 +26,7 @@ abstract class Model_Object extends ORM {
     const FIELD_TEXTAREA = 16;
     const FIELD_WYSIWYG = 32;
 
-    
+
     /**
      * Object type
      * @var string
@@ -43,9 +43,11 @@ abstract class Model_Object extends ORM {
 
     /**
      * Get with mask
+     * @param $mask int
+     * @param $only_keys bool if you have get only fields name
      * @return array
      */
-    public static function items($mask = NULL)
+    public static function items($mask = NULL, $only_keys = false)
     {
         $obj = Object::factory('page');
 
@@ -60,7 +62,14 @@ abstract class Model_Object extends ORM {
         {
             if ( $item & $mask )
             {
-                $output[$field] = $item;
+                if ( $only_keys )
+                {
+                    $output[] = $field;
+                }
+                else
+                {
+                    $output[$field] = $item;
+                }
             }
         }
 
@@ -108,7 +117,7 @@ abstract class Model_Object extends ORM {
      * @param mixed $name
      * @return array
      */
-    public function get($name)
+    public function find_obj($name)
     {
         $output = $this->_prepare_value();
         $base_object = NULL;
@@ -149,8 +158,11 @@ abstract class Model_Object extends ORM {
         return $output;
     }
 
-
-    public function get_all()
+    /**
+     * Get all object from one type
+     * @return array
+     */
+    public function find_obj_all()
     {
         $output = array();
 
@@ -161,10 +173,45 @@ abstract class Model_Object extends ORM {
 
         foreach ( $base_objects as $base_object )
         {
-            $output[$base_object->name] = $this->get($base_object);
+            $output[$base_object->name] = $this->find_obj($base_object);
         }
 
         return $output;
+    }
+
+    /**
+     * create value in object
+     * @param Validation $validation
+     */
+    public function create_obj( Validation $validation = NULL )
+    {
+
+    }
+
+    /**
+     * update values in object
+     * @param Validation $validation
+     */
+    public function update_obj( Validation $validation = NULL )
+    {
+
+    }
+
+    /**
+     * save objects (create or update)
+     * @param Validation $validation
+     * @return void
+     */
+    public function save_obj( Validation $validation = NULL )
+    {
+        if( $this->_loaded )
+        {
+            return $this->update_obj($validation);
+        }
+        else
+        {
+            return $this->create_obj($validation);
+        }
     }
 
 } // End Model_Object

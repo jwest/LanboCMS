@@ -46,7 +46,7 @@ class Controller_Backend extends Controller_Template {
         $view = View::factory('backend/lists');
         $view->object_name = $this->object_name;
         $view->fields = Model_Page::items(Object::SHOW);
-        $view->rows = Object::factory('page')->get_all();
+        $view->rows = Object::factory('page')->find_obj_all();
 
         $this->template->content = $view;
 	}
@@ -56,24 +56,39 @@ class Controller_Backend extends Controller_Template {
      */
     public function action_create()
     {
-        $object_name = $this->object_name;
-        $fields = Model_Page::items(Object::EDIT);
-        $fields_inputs = array();
-
-        foreach ( $fields as $field => $mask )
+        if ( $this->request->method() === Request::POST )
         {
-            $input = 'input';
-            $input = ( $mask & Object::FIELD_TEXTAREA ) ? 'textarea' : $input;
-            $input = ( $mask & Object::FIELD_WYSIWYG )  ? 'wysiwyg'  : $input;
-            $input = ( $mask & Object::FIELD_CHECKBOX ) ? 'checkbox' : $input;
+            try
+            {
+                Arr::extract($this->request->post(), Model_Page::items(Object::EDIT));
+            }
+            catch(ORM_Validation_Exception $e)
+            {
 
-            $fields_inputs[] = View::factory('backend/field/' . $input)->set('field_name', $field)->render();
+            }
         }
 
         $view = View::factory('backend/create');
 
-        $view->object_name = $object_name;
-        $view->fields_inputs = $fields_inputs;
+        $view->object_name = $this->object_name;
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name);
+
+        $this->template->content = $view;
+    }
+
+    /**
+     * Update object
+     */
+    public function action_edit()
+    {
+        $obj_name = $this->request->param('id');
+
+        $obj = Object::factory( Inflector::singular($this->object_name) )->find_obj($obj_name);
+
+        $view = View::factory('backend/create');
+
+        $view->object_name = $this->object_name;
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, $obj);
 
         $this->template->content = $view;
     }
