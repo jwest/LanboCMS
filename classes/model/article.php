@@ -25,4 +25,4 @@ class Model_Article extends Model_Object {
     }
 
 
-} // End Model_Page
+} // End Model_Article

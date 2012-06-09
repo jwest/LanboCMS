@@ -29,6 +29,7 @@ class Controller_Frontend extends Controller {
         if ( $obj === NULL )
         {
             $obj = Object::Factory('page')->find_obj(self::PAGE_404);
+            $this->request->status = 404;
         }
 
         var_dump($obj);

@@ -23,11 +23,7 @@ class LanboCMS_Objects {
      */
     public function objects()
     {
-        return array
-        (
-            'pages' => NULL,
-            'articles' => NULL,
-        );
+        return Kohana::$config->load('lanbocms')->get('objects');
     }
 
     /**

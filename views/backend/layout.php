@@ -54,7 +54,7 @@
                                     <li><a href="<?php echo URL::site( 'admin/'.$object ); ?>"><?php echo __($object); ?></a></li>
                                 <?php endif; ?>
                             <?php endforeach; ?>
-                            <li><a href="<?php echo URL::site( 'admin/logout' ); ?>"><?php echo __('logout'); ?></a></li>
+                            <li><a href="<?php echo URL::site( 'admin/signout' ); ?>"><?php echo __('logout'); ?></a></li>
                         </ul>
                     </div>
                 </div>

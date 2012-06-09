@@ -35,6 +35,18 @@ class Controller_Backend extends Controller_Template {
      */
     public function before()
     {
+        //check auth
+        if ( $this->request->action() === 'signin' OR $this->request->action() === 'signout' )
+        {
+            return;
+        }
+
+        if ( Auth::instance()->logged_in('admin') == 0 )
+        {            
+            $this->request->redirect('admin/signin');
+            return;
+        }
+
         parent::before();
 
         $this->object_name = $this->request->param( 'object' );
@@ -47,6 +59,45 @@ class Controller_Backend extends Controller_Template {
         $this->template->wysiwyg = LanboCMS_Objects::factory()->wysiwyg();
     }
 
+
+    /**
+     * Signin to admin panel
+     */
+    public function action_signin()
+    {
+        if ( Auth::instance()->logged_in('admin') != 0 )
+        {
+            $this->request->redirect('admin/');
+            return;
+        }
+
+        $error = false;
+
+        if ( $this->request->method() === Request::POST )
+        {
+            $status = Auth::instance()->login($this->request->post('username'), $this->request->post('password'));
+
+            if ($status)
+            {
+                $this->request->redirect('admin/');
+                return;
+            }
+
+            $error = true;
+        }
+
+        $this->auto_render = FALSE;
+        $this->response->body( View::factory( 'backend/signin', array('error' => $error, 'media_path' => $this->media_path)) );
+    }
+
+    /**
+     * Signout action
+     */
+    public function action_signout()
+    {
+        Auth::instance()->logout();        
+        $this->request->redirect('/');
+    }
 
     /**
      * Default action for show items
