@@ -114,10 +114,19 @@ class Controller_Backend extends Controller_Template {
      */
 	public function action_index()
 	{
+        $rows = $this->object_model->find_obj_all();
+
+        if ( isset($_GET['json']) )
+        {
+            $this->auto_render = FALSE;
+            $this->response->body( json_encode( array_values ( $rows ) ) );
+            return;
+        }
+
         $view = View::factory( 'backend/lists' );
         $view->object_name = $this->object_name;
         $view->fields = $this->object_model->items(Object::SHOW);
-        $view->rows = $this->object_model->find_obj_all();
+        $view->rows = $rows;
         $view->only_update = $this->object_only_update;
 
         $this->template->content = $view;

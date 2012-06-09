@@ -20,7 +20,7 @@
         <!--Wysiwyg-->
         <?php if ( $wysiwyg == 'redactor' ):?>
             <?php echo Html::style( $media_path . '/wysiwyg/redactor/css/redactor.css' ); ?>
-            <?php echo Html::script( $media_path . '/wysiwyg/redactor/redactor.min.js' ); ?>
+            <?php echo Html::script( $media_path . '/wysiwyg/redactor/redactor.js' ); ?>
         <?php elseif ( $wysiwyg == 'bootstrap' ): ?>
             <?php echo Html::style( $media_path . '/wysiwyg/bootstrap/prettify.css' ); ?>
             <?php echo Html::style( $media_path . '/wysiwyg/bootstrap/bootstrap-wysihtml5.css' ); ?>

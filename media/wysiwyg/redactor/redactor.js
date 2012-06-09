@@ -1566,7 +1566,8 @@ var RTOOLBAR = {};
 						
 						$.each(data, $.proxy(function(key, val)
 						{
-							var img = $('<img src="' + val.thumb + '" rel="' + val.image + '" />');
+							//LanboCMS - Change for simple compatible with lanbo crud
+							var img = $('<img style="max-width: 100px; max-height: 100px;" src="' + val.file + '" rel="' + val.file + '" />');
 							$('#redactor_image_box').append(img);
 							$(img).click($.proxy(this.imageSetThumb, this));
 							

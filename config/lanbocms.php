@@ -5,7 +5,7 @@ return array
 	'objects' => array
     (
         'pages' => NULL,
-        'articles' => NULL,
+        'files' => NULL,
         'system' => NULL,
     ),
 

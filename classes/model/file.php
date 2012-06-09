@@ -1,15 +1,22 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 /**
- * Model for articles
+ * Model for files
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_Article extends Model_Object {
+class Model_File extends Model_Object {
 
 
     /**
-     * Declare fields for page object
+     * path to upload dir,
+     * must be public and chmod 0777
+     */
+    const UPLOAD_DIR = 'media/data/';
+
+
+    /**
+     * Declare fields for file object
      * @return array
      */
     protected function _items()
@@ -17,11 +24,8 @@ class Model_Article extends Model_Object {
         return array
         (
             'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
-            'updated_at' => Object::SHOW,
-            'title' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
-            'content' => Object::EDIT | Object::FIELD_WYSIWYG,
             'file' => Object::EDIT | Object::SHOW | Object::FIELD_FILE,
-            'tags' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
+            'updated_at' => Object::SHOW,
         );
     }
 
@@ -45,14 +49,14 @@ class Model_Article extends Model_Object {
             $name = URL::title( implode('', $name_part) ) . $ext;
 
             //upload file
-            Upload::$default_directory = 'media/data/';
+            Upload::$default_directory = self::UPLOAD_DIR;
             Upload::save($file, $name);
 
-            return $name;
+            return URL::site(self::UPLOAD_DIR . $name, NULL, FALSE);
         }
 
         return $value;
     }
 
 
-} // End Model_Article
+} // End Model_File

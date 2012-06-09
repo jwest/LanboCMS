@@ -55,6 +55,7 @@ class LanboCMS_Objects {
             $fields_inputs[$field] = View::factory('backend/field/' . $input)
                 ->set('field_name', $field)
                 ->set('value', isset($obj[$field]) ? $obj[$field] : NULL )
+                ->set('object_name', $object_name)
                 ->render();
         }
 

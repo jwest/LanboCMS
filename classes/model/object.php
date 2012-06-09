@@ -53,7 +53,7 @@ class Model_Object extends ORM {
      * declare table name
      * @var string
      */
-    protected $_table_name = 'items';
+    protected $_table_name = 'values';
 
 
     /**
