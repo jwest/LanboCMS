@@ -6,6 +6,7 @@ return array
     (
         'pages' => NULL,
         'articles' => NULL,
+        'system' => NULL,
     ),
 
     'wysiwyg' => 'redactor',

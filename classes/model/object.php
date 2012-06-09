@@ -37,6 +37,10 @@ class Model_Object extends ORM {
      */
     const FIELD_WYSIWYG = 32;
 
+    /**
+     * if field is fileupload
+     */
+    const FIELD_FILE = 64;
 
     /**
      * Object type
@@ -49,7 +53,14 @@ class Model_Object extends ORM {
      * declare table name
      * @var string
      */
-    protected $_table_name = 'objects';
+    protected $_table_name = 'items';
+
+
+    /**
+     * Only update objects (without create and delete)
+     * @var boolean
+     */
+    protected $_only_update = FALSE;
 
 
     /**
@@ -95,6 +106,16 @@ class Model_Object extends ORM {
     protected function _items()
     {
         return array();
+    }
+
+
+    /**
+     * If only update objects
+     * @return bool
+     */
+    public function only_update()
+    {
+        return $this->_only_update;
     }
 
 
@@ -219,6 +240,11 @@ class Model_Object extends ORM {
      */
     public function create_obj( $values )
     {
+        if ( $this->_only_update )
+        {
+            return NULL;
+        }
+
         Database::instance()->begin();
 
         $obj = $this->_save_obj( $this->_process_obj($values['obj']), NULL );
@@ -238,7 +264,7 @@ class Model_Object extends ORM {
             $method_name = '_process_' . $field;
 
             $value = ( method_exists($this, $method_name ) )
-                ? $this->$method_name( $value )
+                ? $this->$method_name( $value, $obj->id )
                 : $value;
 
             $this->_save_obj($field, $value, $obj->id);
@@ -258,7 +284,7 @@ class Model_Object extends ORM {
     {
         Database::instance()->begin();
 
-        $obj = $this->_save_obj( $this->_process_obj($values['obj']), NULL, NULL, $values['id'] );
+        $obj = $this->_save_obj( $this->_process_obj($values['obj'], $values['id']), NULL, NULL, $values['id'] );
         $items = $this->items();
 
         unset ( $items['obj'] );
@@ -275,7 +301,7 @@ class Model_Object extends ORM {
             $method_name = '_process_' . $field;
 
             $value = ( method_exists($this, $method_name ) )
-                ? $this->$method_name( $value )
+                ? $this->$method_name( $value, $values['id'] )
                 : $value;
 
             $obj_temp = Object::factory( $this->_object_type )
@@ -315,6 +341,13 @@ class Model_Object extends ORM {
      */
     public function delete_obj( $name )
     {
+        Database::instance()->begin();
+
+        if ( $this->_only_update )
+        {
+            return NULL;
+        }
+
         $obj = Object::factory( $this->_object_type )
             ->where( 'name', '=', $name )
             ->where( 'object_id', '=', NULL )
@@ -334,6 +367,8 @@ class Model_Object extends ORM {
         }
 
         $obj->delete();
+
+        Database::instance()->commit();
 
         return TRUE;
     }
@@ -362,11 +397,13 @@ class Model_Object extends ORM {
     /**
      * Process main obj
      * @param mixed $value
+     * @param int $id id base object
      * @return string
      */
-    protected function _process_obj( $value )
+    protected function _process_obj( $value, $id = NULL )
     {
         $this->_validation_obj('obj', $value);
+        $this->_validation_obj('obj', $value, array($this, 'unique_obj'), array($id, ':value'));
 
         return URL::title( $value );
     }
@@ -379,6 +416,27 @@ class Model_Object extends ORM {
     protected function _process_updated_at( $value )
     {
         return date('Y-m-d H:i');
+    }
+
+    /**
+     * check if base object name is unique
+     * @param int $id
+     * @param string $value
+     * @return bool
+     */
+    public function unique_obj( $id, $value )
+    {
+        $obj = Object::factory( $this->_object_type )
+            ->where( 'name', '=', $value )
+            ->where( 'object_id', '=', NULL )
+            ->find();
+
+        if ( $obj->id === NULL )
+        {
+            return TRUE;
+        }
+
+        return ( $obj->id == $id );
     }
 
 } // End Model_Object

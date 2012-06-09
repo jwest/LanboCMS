@@ -47,6 +47,7 @@ class LanboCMS_Objects {
         foreach ( $fields as $field => $mask )
         {
             $input = 'input';
+            $input = ( $mask & Object::FIELD_FILE ) ? 'file' : $input;
             $input = ( $mask & Object::FIELD_TEXTAREA ) ? 'textarea' : $input;
             $input = ( $mask & Object::FIELD_WYSIWYG ) ? 'wysiwyg-'.$this->wysiwyg() : $input;
             $input = ( $mask & Object::FIELD_CHECKBOX ) ? 'checkbox' : $input;

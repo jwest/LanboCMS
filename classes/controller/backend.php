@@ -26,8 +26,16 @@ class Controller_Backend extends Controller_Template {
 
     /**
      * Media path
+     * @var string
      */
     public $media_path = 'media';
+
+
+    /**
+     * if object is only update
+     * @var bool
+     */
+    public $object_only_update = FALSE;
 
 
     /**
@@ -51,9 +59,11 @@ class Controller_Backend extends Controller_Template {
 
         $this->object_name = $this->request->param( 'object' );
         $this->object_model = Object::factory( Inflector::singular($this->object_name) );
+        $this->object_only_update = $this->object_model->only_update();
 
         $this->template->object_name = $this->object_name;
         $this->template->media_path = $this->media_path;
+        $this->template->only_update = $this->object_only_update;
 
         $this->template->menu = LanboCMS_Objects::factory()->objects();
         $this->template->wysiwyg = LanboCMS_Objects::factory()->wysiwyg();
@@ -108,6 +118,7 @@ class Controller_Backend extends Controller_Template {
         $view->object_name = $this->object_name;
         $view->fields = $this->object_model->items(Object::SHOW);
         $view->rows = $this->object_model->find_obj_all();
+        $view->only_update = $this->object_only_update;
 
         $this->template->content = $view;
 	}
@@ -117,6 +128,11 @@ class Controller_Backend extends Controller_Template {
      */
     public function action_create()
     {
+        if ( $this->object_only_update )
+        {
+            $this->request->redirect( 'admin/' . $this->object_name );
+        }
+
         $view = View::factory( 'backend/form' );
         $view->id = NULL;
         $view->error = NULL;
@@ -152,7 +168,7 @@ class Controller_Backend extends Controller_Template {
     /**
      * Update object
      */
-    public function action_edit()
+    public function action_update()
     {
         $obj_name = $this->request->param( 'id' );
 
@@ -185,6 +201,7 @@ class Controller_Backend extends Controller_Template {
         }
 
         $view->object_name = $this->object_name;
+        $view->only_update = $this->object_only_update;
         $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, array_merge( $obj, $this->request->post() ) );
 
         $this->template->content = $view;
@@ -195,6 +212,11 @@ class Controller_Backend extends Controller_Template {
      */
     public function action_delete()
     {
+        if ( $this->object_only_update )
+        {
+            $this->request->redirect( 'admin/' . $this->object_name );
+        }
+
         $obj_name = $this->request->param( 'id' );
 
         $obj = Object::factory( Inflector::singular($this->object_name) )->delete_obj($obj_name);
