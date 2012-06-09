@@ -65,7 +65,8 @@ class Controller_Backend extends Controller_Template {
      */
     public function action_create()
     {
-        $view = View::factory( 'backend/create' );
+        $view = View::factory( 'backend/form' );
+        $view->create = TRUE;
         $view->error = NULL;
 
         if ( $this->request->method() === Request::POST )
@@ -74,7 +75,7 @@ class Controller_Backend extends Controller_Template {
             {
                 $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
 
-                Object::factory( Inflector::singular($this->object_name) )->create_obj($post);
+                Object::factory( Inflector::singular($this->object_name) )->save_obj($post);
 
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
@@ -105,7 +106,8 @@ class Controller_Backend extends Controller_Template {
 
         $obj = Object::factory( Inflector::singular($this->object_name) )->find_obj($obj_name);
 
-        $view = View::factory( 'backend/create' );
+        $view = View::factory( 'backend/form' );
+        $view->update = TRUE;
         $view->error = NULL;
 
         if ( $this->request->method() === Request::POST )
@@ -114,7 +116,7 @@ class Controller_Backend extends Controller_Template {
             {
                 $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
 
-                Object::factory( Inflector::singular($this->object_name) )->update_obj($post);
+                Object::factory( Inflector::singular($this->object_name) )->save_obj( array_merge($obj, $post) );
 
                 $this->request->redirect( 'admin/' . $this->object_name );
             }

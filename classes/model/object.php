@@ -22,8 +22,19 @@ class Model_Object extends ORM {
      */
     const NOT_NULL = 4;
 
+    /**
+     * if field is checkbox
+     */
     const FIELD_CHECKBOX = 8;
+
+    /**
+     * if field is textarea
+     */
     const FIELD_TEXTAREA = 16;
+
+    /**
+     * if field is wysiwyg
+     */
     const FIELD_WYSIWYG = 32;
 
 
@@ -143,6 +154,7 @@ class Model_Object extends ORM {
             }
         }
 
+        $output['id'] = (int) $base_object->id;
         $output['obj'] = $base_object->name;
 
         $objects = $this
@@ -189,20 +201,11 @@ class Model_Object extends ORM {
      * @param mixed $object_id int or object
      * @return Object;
      */
-    protected function _save_obj($name, $value, $object_id = NULL)
+    protected function _save_obj( $name, $value, $object_id = NULL, $loaded_id = NULL )
     {
-        $obj = NULL;
+        $obj = ORM::factory('object', $loaded_id);
 
-        if ( $object_id instanceof Object )
-        {
-            $obj = $object_id;
-        }
-        else
-        {
-            $obj = ORM::factory('object');
-            $obj->object_id = $object_id;
-        }
-
+        $obj->object_id = $object_id;        
         $obj->object_type = $this->_object_type;
         $obj->name = $name;
         $obj->value = $value;
@@ -231,13 +234,7 @@ class Model_Object extends ORM {
 
             if ( $mask & self::NOT_NULL )
             {
-                $validation = new Validation(array($field => $value));
-                $validation->rule($field, 'not_empty');
-
-                if ( !$validation->check() )
-                {
-                    throw new Validation_Exception($validation);
-                }
+                $this->_validation_obj($field, $value);                
             }
 
             $method_name = '_process_' . $field;
@@ -261,7 +258,39 @@ class Model_Object extends ORM {
      */
     public function update_obj( $values )
     {
+        Database::instance()->begin();
 
+        $obj = $this->_save_obj( $this->_process_obj($values['obj']), NULL, NULL, $values['id'] );
+        $items = $this->items();
+
+        unset ( $items['obj'] );
+
+        foreach ( $items as $field => $mask )
+        {
+            $value = isset( $values[$field] ) ? $values[$field] : NULL;
+
+            if ( $mask & self::NOT_NULL )
+            {
+                $this->_validation_obj($field, $value);                
+            }
+
+            $method_name = '_process_' . $field;
+
+            $value = ( method_exists($this, $method_name ) )
+                ? $this->$method_name( $value )
+                : $value;
+
+            $obj_temp = Object::factory( $this->_object_type )
+                ->where( 'name', '=', $field )
+                ->where( 'object_id', '=', $values['id'] )
+                ->find();
+
+            $this->_save_obj($field, $value, $obj->id, $obj_temp->id);
+        }
+
+        Database::instance()->commit();
+
+        return $obj;
     }
 
     /**
@@ -271,14 +300,35 @@ class Model_Object extends ORM {
      */
     public function save_obj( $values )
     {
-        if ( $this->_loaded )
+        if ( isset( $values['id'] ) AND $values['id'] > 0 )
         {
-            return $this->update_obj($values, $validation);
+            return $this->update_obj( $values );
         }
         else
         {
-            return $this->create_obj($values, $validation);
+            return $this->create_obj( $values );
         }
+    }
+
+    /**
+     * Simple validation field
+     * @param string $field field name
+     * @param mixed $value value
+     * @param string $rule rule name
+     * @param array $rule_value validation rule value (eg. max length)
+     * @return bool 
+     */
+    protected function _validation_obj( $field, $value, $rule = 'not_empty', $rule_value = NULL )
+    {
+        $validation = new Validation(array($field => $value));
+        $validation->rule($field, $rule, $rule_value );
+
+        if ( !$validation->check() )
+        {
+            throw new Validation_Exception($validation);
+        }
+
+        return true;
     }
 
     /**
@@ -288,13 +338,7 @@ class Model_Object extends ORM {
      */
     protected function _process_obj( $value )
     {
-        $validation = new Validation(array('obj' => $value));
-        $validation->rule('obj', 'not_empty');
-
-        if ( !$validation->check() )
-        {
-            throw new Validation_Exception($validation);
-        }
+        $this->_validation_obj('obj', $value);
 
         return URL::title( $value );
     }
