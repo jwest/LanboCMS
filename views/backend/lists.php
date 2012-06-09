@@ -7,7 +7,6 @@
                 <th><?php echo __($field); ?></th>
             <?php endforeach; ?>
             <th> </th>
-            <th> </th>
         </tr>
     </thead>
     <tbody>
@@ -22,8 +21,10 @@
                         <?php endif; ?>
                     </td>
                 <?php endforeach; ?>
-                <td><a href="<?php echo URL::site( 'admin/' . $object_name .'/edit/' . $id ); ?>"><?php echo __('Edit'); ?></a></td>
-                <td><a href=""><?php echo __('Delete'); ?></a></td>
+                <td>
+                    <a class="label label-info" href="<?php echo URL::site( 'admin/' . $object_name .'/edit/' . $id ); ?>"><i class="icon-cog icon-white"></i> <?php echo __('Edit'); ?></a>
+                    <a class="label label-important" href="javascript: (confirm('<?php echo __('Do you have delete object?'); ?>')) ? window.location='<?php echo URL::site( 'admin/' . $object_name .'/delete/' . $id ); ?>' : 0 "><i class="icon-trash icon-white"></i> <?php echo __('Delete'); ?></a>
+                </td>
             </tr>
         <?php endforeach; ?>
     </tbody>

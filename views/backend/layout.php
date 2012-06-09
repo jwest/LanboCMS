@@ -57,5 +57,8 @@
 
         </div>
 
+        <?php echo Html::script( $media_path . '/js/jquery.min.js' ); ?>
+        <?php echo Html::script( $media_path . '/js/bootstrap.min.js' ); ?>
+
     </body>
 </html>

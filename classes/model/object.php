@@ -107,6 +107,7 @@ class Model_Object extends ORM {
         parent::_initialize();
 
         $this->_object_type = strtolower(substr(get_class($this), 6));
+        $this->where('object_type', '=', $this->_object_type);
     }
 
 
@@ -142,10 +143,9 @@ class Model_Object extends ORM {
         }
         else
         {
-            $base_object = self::factory($this->_object_type)
+            $base_object = Object::factory($this->_object_type)
                 ->where('object_id', '=', NULL)
                 ->where('name', '=', $name)
-                ->where('object_type', '=', $this->_object_type)
                 ->find();
 
             if ( $base_object->id === NULL )
@@ -159,7 +159,6 @@ class Model_Object extends ORM {
 
         $objects = $this
             ->where('object_id', '=', $base_object->id)
-            ->where('object_type', '=', $this->_object_type)
             ->find_all();
 
         foreach ( $objects as $object )
@@ -181,9 +180,8 @@ class Model_Object extends ORM {
     {
         $output = array();
 
-        $base_objects = self::factory($this->_object_type)
+        $base_objects = Object::factory($this->_object_type)
             ->where('object_id', '=', NULL)
-            ->where('object_type', '=', $this->_object_type)
             ->find_all();
 
         foreach ( $base_objects as $base_object )
@@ -203,7 +201,7 @@ class Model_Object extends ORM {
      */
     protected function _save_obj( $name, $value, $object_id = NULL, $loaded_id = NULL )
     {
-        $obj = ORM::factory('object', $loaded_id);
+        $obj = Object::factory( $this->_object_type, $loaded_id );
 
         $obj->object_id = $object_id;        
         $obj->object_type = $this->_object_type;
@@ -308,6 +306,36 @@ class Model_Object extends ORM {
         {
             return $this->create_obj( $values );
         }
+    }
+
+    /**
+     * Delete object
+     * @param string $name
+     * @return bool
+     */
+    public function delete_obj( $name )
+    {
+        $obj = Object::factory( $this->_object_type )
+            ->where( 'name', '=', $name )
+            ->where( 'object_id', '=', NULL )
+            ->find();
+
+        if ( $obj->id === NULL )
+        {
+            return FALSE;
+        }
+
+        $objects = Object::factory( $this->_object_type )
+            ->where( 'object_id', '=', $obj->id )->find_all();
+
+        foreach ( $objects as $object )
+        {
+            $object->delete();
+        }
+
+        $obj->delete();
+
+        return TRUE;
     }
 
     /**

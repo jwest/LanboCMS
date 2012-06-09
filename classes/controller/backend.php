@@ -66,7 +66,7 @@ class Controller_Backend extends Controller_Template {
     public function action_create()
     {
         $view = View::factory( 'backend/form' );
-        $view->create = TRUE;
+        $view->id = NULL;
         $view->error = NULL;
 
         if ( $this->request->method() === Request::POST )
@@ -107,7 +107,7 @@ class Controller_Backend extends Controller_Template {
         $obj = Object::factory( Inflector::singular($this->object_name) )->find_obj($obj_name);
 
         $view = View::factory( 'backend/form' );
-        $view->update = TRUE;
+        $view->id = $obj_name;
         $view->error = NULL;
 
         if ( $this->request->method() === Request::POST )
@@ -133,9 +133,21 @@ class Controller_Backend extends Controller_Template {
         }
 
         $view->object_name = $this->object_name;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, $obj);
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, array_merge( $obj, $this->request->post() ) );
 
         $this->template->content = $view;
+    }
+
+    /**
+     * action for delete
+     */
+    public function action_delete()
+    {
+        $obj_name = $this->request->param( 'id' );
+
+        $obj = Object::factory( Inflector::singular($this->object_name) )->delete_obj($obj_name);
+
+        $this->request->redirect( 'admin/' . $this->object_name );
     }
 
 } // End Controller_Frontend

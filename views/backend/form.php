@@ -19,11 +19,11 @@
                     </div>
                 <?php endforeach; ?>
                 <div class="form-actions">
-                    <?php if ( isset($create) ): ?>
+                    <?php if ( $id === NULL ): ?>
                         <button type="submit" class="btn btn-primary"><?php echo __('Create'); ?></button>
                     <?php else: ?>
                         <button type="submit" class="btn btn-primary"><?php echo __('Update'); ?></button>
-                        <a class="btn btn-danger" href=""><?php echo __('Delete'); ?></a>
+                        <a class="btn btn-danger" href="javascript: (confirm('<?php echo __('Do you have delete object?'); ?>')) ? window.location='<?php echo URL::site( 'admin/' . $object_name .'/delete/' . $id ); ?>' : 0 "><?php echo __('Delete'); ?></a>
                     <?php endif; ?>
                     <a class="btn" href="<?php echo URL::site( 'admin/' . $object_name ); ?>"><?php echo __('Cancel'); ?></a>
                 </div>
