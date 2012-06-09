@@ -31,6 +31,15 @@ class LanboCMS_Objects {
     }
 
     /**
+     * Get default wysiwyg name
+     * @return string
+     */
+    public function wysiwyg()
+    {
+        return Kohana::$config->load('lanbocms')->get('wysiwyg');
+    }
+
+    /**
      * Get fields view
      * @return array View
      */
@@ -43,7 +52,7 @@ class LanboCMS_Objects {
         {
             $input = 'input';
             $input = ( $mask & Object::FIELD_TEXTAREA ) ? 'textarea' : $input;
-            $input = ( $mask & Object::FIELD_WYSIWYG )  ? 'wysiwyg'  : $input;
+            $input = ( $mask & Object::FIELD_WYSIWYG ) ? 'wysiwyg-'.$this->wysiwyg() : $input;
             $input = ( $mask & Object::FIELD_CHECKBOX ) ? 'checkbox' : $input;
 
             $fields_inputs[$field] = View::factory('backend/field/' . $input)

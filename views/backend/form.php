@@ -1,5 +1,3 @@
-<h3><?php echo __( $object_name ); ?></h3>
-
 <?php if( !empty($error) ): ?>
 <div class="alert alert-error">
     <h4 class="alert-heading"><?php echo __('Validation error'); ?></h4>

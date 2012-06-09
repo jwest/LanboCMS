@@ -44,6 +44,7 @@ class Controller_Backend extends Controller_Template {
         $this->template->media_path = $this->media_path;
 
         $this->template->menu = LanboCMS_Objects::factory()->objects();
+        $this->template->wysiwyg = LanboCMS_Objects::factory()->wysiwyg();
     }
 
 

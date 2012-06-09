@@ -14,6 +14,22 @@
             body { padding-top: 60px; padding-bottom: 40px; }
         </style>
 
+        <?php echo Html::script( $media_path . '/js/jquery.min.js' ); ?>
+        <?php echo Html::script( $media_path . '/js/bootstrap.min.js' ); ?>
+
+        <!--Wysiwyg-->
+        <?php if ( $wysiwyg == 'redactor' ):?>
+            <?php echo Html::style( $media_path . '/wysiwyg/redactor/css/redactor.css' ); ?>
+            <?php echo Html::script( $media_path . '/wysiwyg/redactor/redactor.min.js' ); ?>
+        <?php elseif ( $wysiwyg == 'bootstrap' ): ?>
+            <?php echo Html::style( $media_path . '/wysiwyg/bootstrap/prettify.css' ); ?>
+            <?php echo Html::style( $media_path . '/wysiwyg/bootstrap/bootstrap-wysihtml5.css' ); ?>
+            <?php echo Html::script( $media_path . '/wysiwyg/bootstrap/wysihtml5-0.3.0_rc3.js' ); ?>
+            <?php echo Html::script( $media_path . '/wysiwyg/bootstrap/bootstrap-wysihtml5.js' ); ?>
+            <?php echo Html::script( $media_path . '/wysiwyg/bootstrap/prettify.js' ); ?>
+        <?php endif; ?>
+        <!--Wysiwyg END-->
+
         <!--[if lt IE 9]>
             <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
@@ -56,9 +72,6 @@
             </footer>
 
         </div>
-
-        <?php echo Html::script( $media_path . '/js/jquery.min.js' ); ?>
-        <?php echo Html::script( $media_path . '/js/bootstrap.min.js' ); ?>
 
     </body>
 </html>

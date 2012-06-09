@@ -1,5 +1,3 @@
-<h3><?php echo __( $object_name ); ?></h3>
-
 <table class="table table-striped">
     <thead>
         <tr>
