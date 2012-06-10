@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_System extends Model_Object {
+class Model_System extends Object {
 
 
     /**

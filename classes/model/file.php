@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_File extends Model_Object {
+class Model_File extends Object {
 
 
     /**

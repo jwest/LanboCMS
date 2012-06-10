@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_Page extends Model_Object {
+class Model_Page extends Object {
 
 
     /**

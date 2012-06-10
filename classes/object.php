@@ -5,6 +5,6 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-abstract class Object extends Model_Object {
+class Object extends Model_Object {
 
 } // End Object
