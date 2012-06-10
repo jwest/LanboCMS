@@ -157,7 +157,7 @@ class Model_Object extends Model {
      * @param mixed $name
      * @return array
      */
-    public function find_obj($name)
+    public function find($name)
     {
         $output = $this->_prepare_value();
         $base_object = NULL;
@@ -203,7 +203,7 @@ class Model_Object extends Model {
      * Get all object from one type
      * @return array
      */
-    public function find_obj_all()
+    public function find_all()
     {
         $base_output = array();
 
@@ -242,7 +242,7 @@ class Model_Object extends Model {
      * @param int $object_id int or object
      * @return object
      */
-    protected function _create_obj( $name, $value, $object_id = NULL )
+    protected function _create( $name, $value, $object_id = NULL )
     {
         $fields = array('object_id', 'object_type', 'name', 'value');
         $values = array($object_id, $this->_object_type, $name, $value);
@@ -260,7 +260,7 @@ class Model_Object extends Model {
      * @param int $id id row if you have update name
      * @return object
      */
-    protected function _update_obj( $name, $value, $object_id, $id = NULL )
+    protected function _update( $name, $value, $object_id, $id = NULL )
     {
         $query = DB::update( $this->_table_name );
 
@@ -290,7 +290,7 @@ class Model_Object extends Model {
      * @param array $values
      * @return Object
      */
-    public function create_obj( $values )
+    public function create( $values )
     {
         if ( $this->_only_update )
         {
@@ -299,7 +299,7 @@ class Model_Object extends Model {
 
         Database::instance()->begin();
 
-        $obj = $this->_create_obj( $this->_process_obj($values['obj']), NULL );
+        $obj = $this->_create( $this->_process_obj($values['obj']), NULL );
         $items = $this->items();
 
         unset ( $items['obj'] );
@@ -310,7 +310,7 @@ class Model_Object extends Model {
 
             if ( $mask & self::NOT_NULL )
             {
-                $this->_validation_obj( $field, $value );
+                $this->_validation( $field, $value );
             }
 
             $method_name = '_process_' . $field;
@@ -319,7 +319,7 @@ class Model_Object extends Model {
                 ? $this->$method_name( $value, $obj->id )
                 : $value;
 
-            $this->_create_obj( $field, $value, $obj->id );
+            $this->_create( $field, $value, $obj->id );
         }
 
         Database::instance()->commit();
@@ -332,11 +332,11 @@ class Model_Object extends Model {
      * @param array $values
      * @return Object
      */
-    public function update_obj( $values )
+    public function update( $values )
     {
         Database::instance()->begin();
 
-        $obj = $this->_update_obj( $this->_process_obj($values['obj'], $values['id']), NULL, NULL, $values['id'] );
+        $obj = $this->_update( $this->_process_obj($values['obj'], $values['id']), NULL, NULL, $values['id'] );
         $items = $this->items();
 
         unset ( $items['obj'] );
@@ -347,7 +347,7 @@ class Model_Object extends Model {
 
             if ( $mask & self::NOT_NULL )
             {
-                $this->_validation_obj($field, $value);
+                $this->_validation($field, $value);
             }
 
             $method_name = '_process_' . $field;
@@ -356,7 +356,7 @@ class Model_Object extends Model {
                 ? $this->$method_name( $value, $values['id'] )
                 : $value;
 
-            $this->_update_obj($field, $value, $values['id']);
+            $this->_update($field, $value, $values['id']);
         }
 
         Database::instance()->commit();
@@ -369,17 +369,17 @@ class Model_Object extends Model {
      * @param array $values
      * @return Object
      */
-    public function save_obj( $values )
+    public function save( $values )
     {
         $values = (array) $values;
 
         if ( isset( $values['id'] ) AND $values['id'] > 0 )
         {
-            return $this->update_obj( $values );
+            return $this->update( $values );
         }
         else
         {
-            return $this->create_obj( $values );
+            return $this->create( $values );
         }
     }
 
@@ -388,7 +388,7 @@ class Model_Object extends Model {
      * @param string $name
      * @return bool
      */
-    public function delete_obj( $name )
+    public function delete( $name )
     {
         Database::instance()->begin();
 
@@ -397,7 +397,7 @@ class Model_Object extends Model {
             return NULL;
         }
 
-        $obj = $this->find_obj($name);
+        $obj = $this->find($name);
         
         if ( $obj === NULL )
         {
@@ -427,7 +427,7 @@ class Model_Object extends Model {
      * @param array $rule_value validation rule value (eg. max length)
      * @return bool
      */
-    protected function _validation_obj( $field, $value, $rule = 'not_empty', $rule_value = NULL )
+    protected function _validation( $field, $value, $rule = 'not_empty', $rule_value = NULL )
     {
         $validation = new Validation(array($field => $value));
         $validation->rule($field, $rule, $rule_value );
@@ -448,8 +448,8 @@ class Model_Object extends Model {
      */
     protected function _process_obj( $value, $id = NULL )
     {
-        $this->_validation_obj('obj', $value);
-        $this->_validation_obj('obj', $value, array($this, 'unique_obj'), array($id, ':value'));
+        $this->_validation('obj', $value);
+        $this->_validation('obj', $value, array($this, 'unique'), array($id, ':value'));
 
         return URL::title( $value );
     }
@@ -470,7 +470,7 @@ class Model_Object extends Model {
      * @param string $value
      * @return bool
      */
-    public function unique_obj( $id, $value )
+    public function unique( $id, $value )
     {
         $obj = $this->_query_select()
             ->and_where( 'name', '=', $value )

@@ -114,7 +114,7 @@ class Controller_Backend extends Controller_Template {
      */
 	public function action_index()
 	{
-        $rows = $this->object_model->find_obj_all();
+        $rows = $this->object_model->find_all();
 
         if ( isset($_GET['json']) )
         {
@@ -152,7 +152,7 @@ class Controller_Backend extends Controller_Template {
             {
                 $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
 
-                Object::factory( Inflector::singular($this->object_name) )->save_obj($post);
+                Object::factory( Inflector::singular($this->object_name) )->save($post);
 
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
@@ -181,7 +181,7 @@ class Controller_Backend extends Controller_Template {
     {
         $obj_name = $this->request->param( 'id' );
 
-        $obj = Object::factory( Inflector::singular($this->object_name) )->find_obj($obj_name);
+        $obj = Object::factory( Inflector::singular($this->object_name) )->find($obj_name);
 
         $view = View::factory( 'backend/form' );
         $view->id = $obj_name;
@@ -193,7 +193,7 @@ class Controller_Backend extends Controller_Template {
             {
                 $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
 
-                Object::factory( Inflector::singular($this->object_name) )->save_obj( array_merge( (array)$obj, $post) );
+                Object::factory( Inflector::singular($this->object_name) )->save( array_merge( (array)$obj, $post) );
 
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
@@ -228,7 +228,7 @@ class Controller_Backend extends Controller_Template {
 
         $obj_name = $this->request->param( 'id' );
 
-        $obj = Object::factory( Inflector::singular($this->object_name) )->delete_obj($obj_name);
+        $obj = Object::factory( Inflector::singular($this->object_name) )->delete($obj_name);
 
         $this->request->redirect( 'admin/' . $this->object_name );
     }

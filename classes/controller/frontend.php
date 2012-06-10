@@ -24,11 +24,11 @@ class Controller_Frontend extends Controller {
             $name = self::PAGE_INDEX;
         }
 
-        $obj = Object::Factory('page')->find_obj($name);
+        $obj = Object::Factory('page')->find($name);
 
-        if ( $obj === NULL OR $obj['publish'] != 1 )
+        if ( $obj === NULL OR $obj->publish != 1 )
         {
-            $obj = Object::Factory('page')->find_obj(self::PAGE_404);
+            $obj = Object::Factory('page')->find(self::PAGE_404);
             $this->request->status = 404;
         }
 
@@ -42,7 +42,7 @@ class Controller_Frontend extends Controller {
      */
     protected function _process_view($obj)
     {
-        return View::factory('layout', $obj);
+        return View::factory('layout', (array)$obj);
     }
 
 } // End Controller_Frontend
