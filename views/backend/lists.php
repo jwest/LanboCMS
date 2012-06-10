@@ -13,9 +13,9 @@
                 <?php foreach ( $fields as $field => $mask ): ?>
                     <td>
                         <?php if ( $field == 'obj' ): ?>
-                            <span class="label label-info"><?php echo $row[$field]; ?></span>
+                            <span class="label label-info"><?php echo $row->$field; ?></span>
                         <?php else: ?>
-                            <?php echo $row[$field]; ?>
+                            <?php echo $row->$field; ?>
                         <?php endif; ?>
                     </td>
                 <?php endforeach; ?>

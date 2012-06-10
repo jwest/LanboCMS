@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_Object extends ORM {
+class Model_Object extends Model {
 
     /**
      * show field
@@ -123,12 +123,9 @@ class Model_Object extends ORM {
      * Initialize objects
      * @return void
      */
-    protected function _initialize()
+    protected function __construct()
     {
-        parent::_initialize();
-
-        $this->_object_type = strtolower(substr(get_class($this), 6));
-        $this->where('object_type', '=', $this->_object_type);
+        $this->_object_type = strtolower(substr(get_class($this), 6));        
     }
 
 
@@ -148,6 +145,13 @@ class Model_Object extends ORM {
         return $output;
     }
 
+    public function _query_select( $columns = NULL )
+    {
+        return DB::select()->from($this->_table_name)
+            ->as_object()
+            ->where('object_type', '=', $this->_object_type);
+    }
+
     /**
      * Get object from name
      * @param mixed $name
@@ -164,23 +168,25 @@ class Model_Object extends ORM {
         }
         else
         {
-            $base_object = Object::factory($this->_object_type)
-                ->where('object_id', '=', NULL)
-                ->where('name', '=', $name)
-                ->find();
+            $base_object = $this->_query_select()
+                ->and_where('object_id', '=', NULL)
+                ->and_where('name', '=', $name)
+                ->execute()->as_array();
 
-            if ( $base_object->id === NULL )
+            if ( !isset( $base_object[0] ) )
             {
                 return NULL;
             }
+
+            $base_object = $base_object[0];
         }
 
         $output['id'] = (int) $base_object->id;
         $output['obj'] = $base_object->name;
 
-        $objects = $this
-            ->where('object_id', '=', $base_object->id)
-            ->find_all();
+        $objects = $this->_query_select()
+                ->and_where('object_id', '=', $base_object->id)
+                ->execute();
 
         foreach ( $objects as $object )
         {
@@ -190,7 +196,7 @@ class Model_Object extends ORM {
             }
         }
 
-        return $output;
+        return (object) $output;
     }
 
     /**
@@ -199,38 +205,84 @@ class Model_Object extends ORM {
      */
     public function find_obj_all()
     {
-        $output = array();
+        $base_output = array();
 
-        $base_objects = Object::factory($this->_object_type)
-            ->where('object_id', '=', NULL)
-            ->find_all();
+        $base_objects = $this->_query_select()
+            ->and_where('object_id', '=', NULL)
+            ->execute();
 
         foreach ( $base_objects as $base_object )
         {
-            $output[$base_object->name] = $this->find_obj($base_object);
+            $output = $this->_prepare_value();
+            $output['id'] = (int) $base_object->id;
+            $output['obj'] = $base_object->name;
+
+            $objects = $this->_query_select()
+                ->and_where('object_id', '=', $base_object->id)
+                ->execute();
+
+            foreach ( $objects as $object )
+            {
+                if ( key_exists($object->name, $output) )
+                {
+                    $output[$object->name] = $object->value;
+                }
+            }
+
+            $base_output[$output['obj']] = (object) $output;
         }
 
-        return $output;
+        return $base_output;
     }
 
     /**
      * Save object
      * @param string $name
      * @param string $value
-     * @param mixed $object_id int or object
-     * @return Object;
+     * @param int $object_id int or object
+     * @return object
      */
-    protected function _save_obj( $name, $value, $object_id = NULL, $loaded_id = NULL )
+    protected function _create_obj( $name, $value, $object_id = NULL )
     {
-        $obj = Object::factory( $this->_object_type, $loaded_id );
+        $fields = array('object_id', 'object_type', 'name', 'value');
+        $values = array($object_id, $this->_object_type, $name, $value);
+        
+        $output = DB::insert( $this->_table_name, $fields )->values( $values )->execute();
 
-        $obj->object_id = $object_id;        
-        $obj->object_type = $this->_object_type;
-        $obj->name = $name;
-        $obj->value = $value;
-        $obj->save();
+        return (object) array( 'id' => $output[0], 'object_type' => $this->_object_type, 'object_id' => $object_id, 'name' => $name, 'value' => $value);
+    }
 
-        return $obj;
+    /**
+     * Save object
+     * @param string $name
+     * @param string $value
+     * @param int $object_id int or object
+     * @param int $id id row if you have update name
+     * @return object
+     */
+    protected function _update_obj( $name, $value, $object_id, $id = NULL )
+    {
+        $query = DB::update( $this->_table_name );
+
+        if ( $id === NULL )
+        {            
+            $query
+                ->set( array( 'value' => $value ) )
+                ->where( 'object_id', '=', $object_id )
+                ->and_where( 'object_type', '=', $this->_object_type )
+                ->and_where( 'name', '=', $name );
+        }
+        else
+        {
+            $query
+                ->set( array( 'name' => $name, 'value' => $value ) )
+                ->where( 'id', '=', $id )
+                ->and_where( 'object_type', '=', $this->_object_type );       
+        }
+
+        $query->execute();
+
+        return (object) array( 'object_type' => $this->_object_type, 'object_id' => $object_id, 'name' => $name, 'value' => $value);
     }
 
     /**
@@ -247,7 +299,7 @@ class Model_Object extends ORM {
 
         Database::instance()->begin();
 
-        $obj = $this->_save_obj( $this->_process_obj($values['obj']), NULL );
+        $obj = $this->_create_obj( $this->_process_obj($values['obj']), NULL );
         $items = $this->items();
 
         unset ( $items['obj'] );
@@ -258,16 +310,16 @@ class Model_Object extends ORM {
 
             if ( $mask & self::NOT_NULL )
             {
-                $this->_validation_obj($field, $value);                
+                $this->_validation_obj( $field, $value );
             }
 
             $method_name = '_process_' . $field;
 
-            $value = ( method_exists($this, $method_name ) )
+            $value = ( method_exists( $this, $method_name ) )
                 ? $this->$method_name( $value, $obj->id )
                 : $value;
 
-            $this->_save_obj($field, $value, $obj->id);
+            $this->_create_obj( $field, $value, $obj->id );
         }
 
         Database::instance()->commit();
@@ -284,7 +336,7 @@ class Model_Object extends ORM {
     {
         Database::instance()->begin();
 
-        $obj = $this->_save_obj( $this->_process_obj($values['obj'], $values['id']), NULL, NULL, $values['id'] );
+        $obj = $this->_update_obj( $this->_process_obj($values['obj'], $values['id']), NULL, NULL, $values['id'] );
         $items = $this->items();
 
         unset ( $items['obj'] );
@@ -295,7 +347,7 @@ class Model_Object extends ORM {
 
             if ( $mask & self::NOT_NULL )
             {
-                $this->_validation_obj($field, $value);                
+                $this->_validation_obj($field, $value);
             }
 
             $method_name = '_process_' . $field;
@@ -304,12 +356,7 @@ class Model_Object extends ORM {
                 ? $this->$method_name( $value, $values['id'] )
                 : $value;
 
-            $obj_temp = Object::factory( $this->_object_type )
-                ->where( 'name', '=', $field )
-                ->where( 'object_id', '=', $values['id'] )
-                ->find();
-
-            $this->_save_obj($field, $value, $obj->id, $obj_temp->id);
+            $this->_update_obj($field, $value, $values['id']);
         }
 
         Database::instance()->commit();
@@ -324,6 +371,8 @@ class Model_Object extends ORM {
      */
     public function save_obj( $values )
     {
+        $values = (array) $values;
+
         if ( isset( $values['id'] ) AND $values['id'] > 0 )
         {
             return $this->update_obj( $values );
@@ -348,25 +397,22 @@ class Model_Object extends ORM {
             return NULL;
         }
 
-        $obj = Object::factory( $this->_object_type )
-            ->where( 'name', '=', $name )
-            ->where( 'object_id', '=', NULL )
-            ->find();
-
-        if ( $obj->id === NULL )
+        $obj = $this->find_obj($name);
+        
+        if ( $obj === NULL )
         {
             return FALSE;
         }
 
-        $objects = Object::factory( $this->_object_type )
-            ->where( 'object_id', '=', $obj->id )->find_all();
+        DB::delete( $this->_table_name )
+            ->where( 'object_id', '=', $obj->id )
+            ->and_where( 'object_type', '=', $this->_object_type )
+            ->execute();
 
-        foreach ( $objects as $object )
-        {
-            $object->delete();
-        }
-
-        $obj->delete();
+        DB::delete( $this->_table_name )
+            ->where( 'id', '=', $obj->id )
+            ->and_where( 'object_type', '=', $this->_object_type )
+            ->execute();
 
         Database::instance()->commit();
 
@@ -379,7 +425,7 @@ class Model_Object extends ORM {
      * @param mixed $value value
      * @param string $rule rule name
      * @param array $rule_value validation rule value (eg. max length)
-     * @return bool 
+     * @return bool
      */
     protected function _validation_obj( $field, $value, $rule = 'not_empty', $rule_value = NULL )
     {
@@ -426,17 +472,17 @@ class Model_Object extends ORM {
      */
     public function unique_obj( $id, $value )
     {
-        $obj = Object::factory( $this->_object_type )
-            ->where( 'name', '=', $value )
-            ->where( 'object_id', '=', NULL )
-            ->find();
+        $obj = $this->_query_select()
+            ->and_where( 'name', '=', $value )
+            ->and_where('object_id', '=', NULL)
+            ->execute()->as_array();
 
-        if ( $obj->id === NULL )
+        if ( ! isset ($obj[0]) )
         {
             return TRUE;
         }
 
-        return ( $obj->id == $id );
+        return ( $obj[0]->id == $id );
     }
 
 } // End Model_Object

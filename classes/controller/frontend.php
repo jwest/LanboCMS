@@ -26,13 +26,23 @@ class Controller_Frontend extends Controller {
 
         $obj = Object::Factory('page')->find_obj($name);
 
-        if ( $obj === NULL )
+        if ( $obj === NULL OR $obj['publish'] != 1 )
         {
             $obj = Object::Factory('page')->find_obj(self::PAGE_404);
             $this->request->status = 404;
         }
 
-        var_dump($obj);
+        $this->response->body( $this->_process_view($obj)->render() );
 	}
+
+    /**
+     * Prepare view with object for response
+     * @param  array $obj
+     * @return object View
+     */
+    protected function _process_view($obj)
+    {
+        return View::factory('layout', $obj);
+    }
 
 } // End Controller_Frontend

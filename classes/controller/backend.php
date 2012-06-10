@@ -193,7 +193,7 @@ class Controller_Backend extends Controller_Template {
             {
                 $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
 
-                Object::factory( Inflector::singular($this->object_name) )->save_obj( array_merge($obj, $post) );
+                Object::factory( Inflector::singular($this->object_name) )->save_obj( array_merge( (array)$obj, $post) );
 
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
@@ -211,7 +211,7 @@ class Controller_Backend extends Controller_Template {
 
         $view->object_name = $this->object_name;
         $view->only_update = $this->object_only_update;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, array_merge( $obj, $this->request->post() ) );
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, array_merge( (array)$obj, $this->request->post() ) );
 
         $this->template->content = $view;
     }

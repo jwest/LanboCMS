@@ -9,7 +9,7 @@ Route::set('lanbocms/account', 'admin/<action>', array('action' => 'signin|signo
 Route::set('lanbocms/backend', 'admin(/<object>(/<action>(/<id>)))')
 	->defaults(array(
 		'controller' => 'backend',
-        'object'     => 'page',
+        'object'     => 'pages',
 		'action'     => 'index',
 		'id'         => NULL,
 	));
