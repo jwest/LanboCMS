@@ -114,7 +114,17 @@ class Kohana_Controller_Backend extends Controller_Template {
      */
     public function action_index()
     {
-        $rows = $this->object_model->find_all();
+        $rows = array();
+        
+        if ( $this->request->param('option') == NULL )
+        {
+            $rows = $this->object_model->find_all();
+        }
+        else
+        {
+            $params = explode(':', $this->request->param('option'));
+            $rows = $this->object_model->find_all_where($params[0], $params[1]);
+        }
 
         if ( isset($_GET['json']) )
         {

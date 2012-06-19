@@ -41,6 +41,11 @@ class Kohana_Model_Object extends Model {
      * if field is fileupload
      */
     const FIELD_FILE = 64;
+    
+    /**
+     * if you have declare relation 
+     */
+    const FIELD_RELATION = 128;
 
     /**
      * Object type
@@ -53,7 +58,7 @@ class Kohana_Model_Object extends Model {
      * declare table name
      * @var string
      */
-    protected $_table_name = 'items';
+    protected $_table_name = 'objects';
 
 
     /**
@@ -155,9 +160,10 @@ class Kohana_Model_Object extends Model {
     /**
      * Get object from name
      * @param mixed $name
+     * @param bool $byId
      * @return array
      */
-    public function find($name)
+    public function find($name, $byId = false)
     {
         $output = $this->_prepare_value();
         $base_object = NULL;
@@ -168,10 +174,19 @@ class Kohana_Model_Object extends Model {
         }
         else
         {
-            $base_object = $this->_query_select()
-                ->and_where('object_id', '=', NULL)
-                ->and_where('name', '=', $name)
-                ->execute()->as_array();
+            $query = $this->_query_select()          
+                ->and_where('object_id', '=', NULL);  
+            
+            if ( $byId )
+            {                
+                $query->and_where('id', '=', $name);
+            }
+            else
+            {
+                $query->and_where('name', '=', $name);
+            }
+                    
+            $base_object = $query->execute()->as_array();
 
             if ( !isset( $base_object[0] ) )
             {
@@ -234,7 +249,23 @@ class Kohana_Model_Object extends Model {
 
         return $base_output;
     }
-
+    
+    public function find_all_where($name, $value)
+    {
+        $base_output = array();
+        $objects = $this->_query_select()
+            ->and_where('name', '=', $name)
+            ->and_where('value', '=', $value)
+            ->execute();
+        
+        foreach ( $objects as $object )
+        {
+            $base_output[] = $this->find($object->object_id, true);
+        }
+        
+        return $base_output;
+    }
+    
     /**
      * Save object
      * @param string $name
@@ -266,21 +297,35 @@ class Kohana_Model_Object extends Model {
 
         if ( $id === NULL )
         {            
-            $query
-                ->set( array( 'value' => $value ) )
+            $count = DB::select()
+                ->from( $this->_table_name )
                 ->where( 'object_id', '=', $object_id )
                 ->and_where( 'object_type', '=', $this->_object_type )
-                ->and_where( 'name', '=', $name );
+                ->and_where( 'name', '=', $name )
+                ->execute()->count();
+            
+            if ( $count === 0 )
+            {
+                $this->_create($name, $value, $object_id);
+            }
+            else
+            {            
+                $query
+                    ->set( array( 'value' => $value ) )
+                    ->where( 'object_id', '=', $object_id )
+                    ->and_where( 'object_type', '=', $this->_object_type )
+                    ->and_where( 'name', '=', $name )
+                    ->execute();
+            }
         }
         else
         {
             $query
                 ->set( array( 'name' => $name, 'value' => $value ) )
                 ->where( 'id', '=', $id )
-                ->and_where( 'object_type', '=', $this->_object_type );       
+                ->and_where( 'object_type', '=', $this->_object_type )
+                ->execute();       
         }
-
-        $query->execute();
 
         return (object) array( 'object_type' => $this->_object_type, 'object_id' => $object_id, 'name' => $name, 'value' => $value);
     }

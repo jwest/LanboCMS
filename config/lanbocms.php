@@ -5,6 +5,7 @@ return array
 	'objects' => array
     (
         'pages' => NULL,
+        'categories' => NULL,
         'files' => NULL,
         'system' => NULL,
     ),

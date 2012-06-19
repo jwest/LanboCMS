@@ -16,7 +16,8 @@ class Model_Page extends Object {
     {
         return array
         (
-            'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,            
+            'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
+            'category' => Object::SHOW | Object::EDIT | Object::FIELD_RELATION | Object::NOT_NULL,
             'title' => Object::SHOW | Object::EDIT | Object::NOT_NULL,            
             'content' => Object::EDIT | Object::FIELD_WYSIWYG,
             'publish' => Object::EDIT | Object::FIELD_CHECKBOX,

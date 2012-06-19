@@ -37,7 +37,7 @@ class Kohana_Auth_Object extends Auth {
         }
 
         $user = Object::factory( 'system' )->find( 'user-' . $username );
-
+        
         if ( $user !== NULL AND $user->value === $password)
         {
             // Complete the login
