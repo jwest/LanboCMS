@@ -1,3 +1,5 @@
+<?php if( !empty($view_values['fields']) ): ?>
+
 <label class="control-label" for="<?php echo $field_name; ?>">
     <?php echo __($field_name); ?>
 </label>
@@ -49,3 +51,5 @@
     <a class="btn btn-primary" href="<?php echo URL::site( 'admin/' . Inflector::singular($field_name) .'/create/' ); ?>"><?php echo __('Create ' . Inflector::singular($field_name)); ?></a>
     
 </div>
+
+<?php endif; ?>

@@ -35,34 +35,15 @@ class Kohana_LanboCMS_Objects {
     }
 
     /**
-     * Get object list
-     * @todo get from config
-     * @return array
-     */
-    public function objects()
-    {
-        return Kohana::$config->load('lanbocms')->get('objects');
-    }
-
-    /**
-     * Get default wysiwyg name
-     * @return string
-     */
-    public function wysiwyg()
-    {
-        return Kohana::$config->load('lanbocms')->get('wysiwyg');
-    }
-
-    /**
      * Get fields view
      * @return array View
      */
-    public function fields_views($object_name, $obj = NULL)
+    public function fields_views(Object $object)
     {
-        $this->_object_name = $object_name;
-        $this->_object_value = $obj;
+        $this->_object = $object;
+        $wysiwyg = Kohana::$config->load('lanbocms')->get('wysiwyg');
         
-        $fields = Object::factory( Inflector::singular($object_name) )->items(Object::EDIT);
+        $fields = $this->_object->get_fields(Object::EDIT);
         $fields_inputs = array();
 
         foreach ( $fields as $field => $mask )
@@ -71,16 +52,16 @@ class Kohana_LanboCMS_Objects {
             
             $input = ( $mask & Object::FIELD_FILE ) ? $this->_fields_process('file', $field, $mask) : $input;
             $input = ( $mask & Object::FIELD_TEXTAREA ) ? $this->_fields_process('textarea', $field, $mask) : $input;
-            $input = ( $mask & Object::FIELD_WYSIWYG ) ? $this->_fields_process('wysiwyg-'.$this->wysiwyg(), $field, $mask) : $input;
+            $input = ( $mask & Object::FIELD_WYSIWYG ) ? $this->_fields_process('wysiwyg-'.$wysiwyg, $field, $mask) : $input;
             $input = ( $mask & Object::FIELD_CHECKBOX ) ? $this->_fields_process('checkbox', $field, $mask) : $input;
-            $input = ( $mask & Object::FIELD_RELATION ) ? $this->_fields_process('relation_show', $field, $mask) : $input;
-            $input = ( $mask & Object::FIELD_RELATION && Inflector::singular($field) == $field ) ? $this->_fields_process('relation_edit', $field, $mask) : $input;
+            $input = ( $mask & Object::FIELD_MANY_TO_ONE ) ? $this->_fields_process('relation_show', $field, $mask) : $input;
+            $input = ( $mask & Object::FIELD_ONE_TO_MANY && Inflector::singular($field) == $field ) ? $this->_fields_process('relation_edit', $field, $mask) : $input;
 
             $fields_inputs[$field] = View::factory('backend/field/' . $input)
                 ->set('field_name', $field)
                 ->set('mask', $mask)
                 ->set('value', isset($obj[$field]) ? $obj[$field] : NULL )
-                ->set('object_name', $object_name)
+                ->set('object_name', $this->_object->get_type())
                 ->set('view_values', $this->_view_values);                
         }
 

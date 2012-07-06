@@ -14,7 +14,7 @@
                     <td>
                         <?php if ( $field == 'obj' ): ?>
                             <span class="label label-info"><?php echo $row->$field; ?></span>
-                        <?php elseif ( $mask & Object::FIELD_RELATION ): ?>
+                        <?php elseif ( $mask & Object::FIELD_ONE_TO_MANY ): ?>
                             <a href="<?php echo Route::url('lanbocms/backend', array('object' => Inflector::plural($field), 'action' => 'update', 'id' => $row->$field )) ?>">
                                 <span class="label"><?php echo $row->$field; ?> <i class="icon-arrow-right"></i></span>
                             </a>

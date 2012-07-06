@@ -39,10 +39,19 @@ class Kohana_Controller_Backend extends Controller_Template {
 
 
     /**
+     * Config for lanbo objects
+     * @var Config
+     */
+    private $_config = NULL;
+
+
+    /**
      * Prepare template and controller
      */
     public function before()
     {
+        $this->_config = Kohana::$config->load('lanbocms');
+
         //check auth
         if ( $this->request->action() === 'signin' OR $this->request->action() === 'signout' )
         {
@@ -57,16 +66,13 @@ class Kohana_Controller_Backend extends Controller_Template {
 
         parent::before();
 
-        $this->object_name = $this->request->param( 'object' );
+        $this->template->object_name = $this->object_name = $this->request->param( 'object' );        
         $this->object_model = Object::factory( Inflector::singular($this->object_name) );
-        $this->object_only_update = $this->object_model->only_update();
-
-        $this->template->object_name = $this->object_name;
+        $this->template->only_update = $this->object_only_update = $this->object_model->is_only_update();        
         $this->template->media_path = $this->media_path;
-        $this->template->only_update = $this->object_only_update;
 
-        $this->template->menu = LanboCMS_Objects::factory()->objects();
-        $this->template->wysiwyg = LanboCMS_Objects::factory()->wysiwyg();
+        $this->template->menu = $this->_config->get('objects');
+        $this->template->wysiwyg = $this->_config->get('wysiwyg');
     }
 
 
@@ -116,7 +122,7 @@ class Kohana_Controller_Backend extends Controller_Template {
     {
         $rows = array();
         
-        if ( $this->request->param('option') == NULL )
+        if ( $this->request->param('option') === NULL )
         {
             $rows = $this->object_model->find_all();
         }
@@ -126,18 +132,11 @@ class Kohana_Controller_Backend extends Controller_Template {
             $rows = $this->object_model->find_all_where($params[0], $params[1]);
         }
 
-        if ( isset($_GET['json']) )
-        {
-            $this->auto_render = FALSE;
-            $this->response->body( json_encode( array_values ( $rows ) ) );
-            return;
-        }
-
         $view = View::factory( 'backend/lists' );
         $view->object_name = $this->object_name;
-        $view->fields = $this->object_model->items(Object::SHOW);
-        $view->rows = $rows;
+        $view->fields = $this->object_model->get_fields(Object::SHOW);        
         $view->only_update = $this->object_only_update;
+        $view->rows = $rows;
 
         $this->template->content = $view;
     }
@@ -150,6 +149,7 @@ class Kohana_Controller_Backend extends Controller_Template {
         if ( $this->object_only_update )
         {
             $this->request->redirect( 'admin/' . $this->object_name );
+            return;
         }
 
         $view = View::factory( 'backend/form' );
@@ -160,10 +160,8 @@ class Kohana_Controller_Backend extends Controller_Template {
         {
             try
             {
-                $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
-
-                Object::factory( Inflector::singular($this->object_name) )->save($post);
-
+                $post = Arr::extract($this->request->post(), $this->object_model->get_fields(Object::EDIT));
+                $this->object_model->from_array($post)->save();
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
             catch(ORM_Validation_Exception $e)
@@ -179,7 +177,7 @@ class Kohana_Controller_Backend extends Controller_Template {
         }
 
         $view->object_name = $this->object_name;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, $this->request->post() );
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_model);
 
         $this->template->content = $view;
     }

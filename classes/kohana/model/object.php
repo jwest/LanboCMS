@@ -48,6 +48,11 @@ class Kohana_Model_Object extends Model {
     const FIELD_MANY_TO_ONE = 128;
 
     /**
+     * Use for file upload input
+     */
+    const FIELD_FILE = 256;
+
+    /**
      * Table name
      */
     const TABLE_NAME = 'objects';
@@ -89,7 +94,11 @@ class Kohana_Model_Object extends Model {
      */
     protected $_table = 'objects';
 
-
+    /**
+     * model only for show and update
+     * @var boolean
+     */
+    protected $_only_update = false;
 
     /**
      * if object is loaded
@@ -161,6 +170,31 @@ class Kohana_Model_Object extends Model {
         
         return $fields;
     }
+
+    /**
+     * Get fields list with criteria (flags)
+     * @param  int   $option flags
+     * @return array
+     */
+    public function get_fields($option = NULL)
+    {
+        if ( $option !== NULL )
+        {
+            return $this->_fields_declaration;
+        }
+
+        $output = array();
+
+        foreach ($this->_fields_declaration as $name => $value)
+        {
+            if ( $value & $option )
+            {
+                $output[$name] = $value;
+            }
+        }
+
+        return $output;
+    }
     
     /**
      * Get object data as array
@@ -196,6 +230,24 @@ class Kohana_Model_Object extends Model {
     }
 
     /**
+     * object type name
+     * @return string
+     */
+    public function get_type()
+    {
+        return $this->_object_type;
+    }
+
+    /**
+     * object type plural name
+     * @return string
+     */
+    public function get_type_plural()
+    {
+        return Inflector::plural($this->_object_type);
+    }
+
+    /**
      * Set loaded info
      * @param boolean $value
      * @return object
@@ -205,6 +257,15 @@ class Kohana_Model_Object extends Model {
         $this->_loaded = (bool) $value;
 
         return $this;
+    }
+
+    /**
+     * if model is only for show and update
+     * @return boolean
+     */
+    public function is_only_update()
+    {
+        return (bool) $this->_only_update;
     }
 
     /**
@@ -259,11 +320,35 @@ class Kohana_Model_Object extends Model {
             ->where('o2.' . self::TABLE_FIELD_TYPE, '=', $this->_object_type)
             ->execute()->as_array();
 
+        return $this->_prepare_objects_list($values);
+    }
+
+    /**
+     * Find objects all objects
+     * @return array
+     */
+    public function find_all()
+    {
+        $values = DB::select()->from(self::TABLE_NAME)
+            ->where(self::TABLE_FIELD_TYPE, '=', $this->_object_type)
+            ->where(self::TABLE_FIELD_PARENT_ID, '!=', NULL)
+            ->execute()->as_array();
+
+        return $this->_prepare_objects_list($values);
+    }
+
+    /**
+     * Prepare objects list with flat list from database
+     * @param  array $values
+     * @return array object
+     */
+    protected function _prepare_objects_list($values)
+    {
         if ( empty ( $values ) )
         {
-            return NULL;
+            return array();
         }
-        
+
         $output = array();
         $values_arr = array();
 
@@ -280,8 +365,6 @@ class Kohana_Model_Object extends Model {
 
         return $output;
     }
-
-    public function find_all(){}
     
     
     public function save(){}

@@ -8,6 +8,12 @@
 class Model_Page extends Object {
 
     /**
+     * id field is required
+     * @var int
+     */
+    public $id = array();
+
+    /**
      * Route for page
      * @var string
      */
