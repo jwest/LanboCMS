@@ -24,7 +24,7 @@ class Kohana_Controller_Frontend extends Controller {
             $name = self::PAGE_INDEX;
         }
 
-        $obj = Object::Factory('page')->find($name);
+        $obj = Object::Factory('page')->find_where('route', $name);
 
         if ( $obj === NULL OR $obj->publish != 1 )
         {

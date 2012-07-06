@@ -137,6 +137,15 @@ class Kohana_LanboCMS_Objects {
     
     protected function _field_process_relation_show($field, $mask)
     {
+        if ( empty($this->_object_value) )
+        {
+            $this->_view_values = array
+            (
+                'rows' => array(),
+            );
+            return;
+        }
+        
         $values_output = Object::factory(Inflector::singular($field))->find_all_where(Inflector::singular($this->_object_name), $this->_object_value['obj']);
         $fields = Object::factory(Inflector::singular($field))->items(Object::SHOW);
 

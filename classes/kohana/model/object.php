@@ -8,526 +8,283 @@
 class Kohana_Model_Object extends Model {
 
     /**
-     * show field
+     * Use for show field
      */
     const SHOW = 1;
 
     /**
-     * edit field
+     * Use for field editable
      */
     const EDIT = 2;
 
     /**
-     * if field is main
+     * Use for field type text
      */
-    const NOT_NULL = 4;
+    const FIELD_TEXT = 8;
 
     /**
-     * if field is checkbox
+     * Use for field type wysiwyg
      */
-    const FIELD_CHECKBOX = 8;
+    const FIELD_WYSIWYG = 16;
 
     /**
-     * if field is textarea
+     * Use for field type textarea
      */
-    const FIELD_TEXTAREA = 16;
+    const FIELD_TEXTAREA = 24;
 
     /**
-     * if field is wysiwyg
+     * Use for field type checkbox
      */
-    const FIELD_WYSIWYG = 32;
+    const FIELD_CHECKBOX = 32;
 
     /**
-     * if field is fileupload
+     * Use for relation one to many
      */
-    const FIELD_FILE = 64;
-    
-    /**
-     * if you have declare relation 
-     */
-    const FIELD_RELATION = 128;
+    const FIELD_ONE_TO_MANY = 64;
 
     /**
-     * Object type
+     * Use for relation many to one
+     */
+    const FIELD_MANY_TO_ONE = 128;
+
+    /**
+     * Table name
+     */
+    const TABLE_NAME = 'objects';
+
+    /**
+     * Table id field
+     */
+    const TABLE_FIELD_ID = 'id';
+
+    /**
+     * Table parent id field
+     */
+    const TABLE_FIELD_PARENT_ID = 'parent_id';
+
+    /**
+     * Table type field
+     */
+    const TABLE_FIELD_TYPE = 'type';
+
+    /**
+     * Table name field
+     */
+    const TABLE_FIELD_NAME = 'name';
+
+    /**
+     * Table value field
+     */
+    const TABLE_FIELD_VALUE = 'value';
+
+    /**
+     * id field is required
+     * @var int
+     */
+    public $id = array(Object::SHOW);
+
+    /**
+     * table name
      * @var string
      */
-    protected $_object_type;
+    protected $_table = 'objects';
 
-
-    /**
-     * declare table name
-     * @var string
-     */
-    protected $_table_name = 'objects';
 
 
     /**
-     * Only update objects (without create and delete)
+     * if object is loaded
      * @var boolean
      */
-    protected $_only_update = FALSE;
-
+    protected $_loaded = false;
 
     /**
-     * Get with mask
-     * @param $mask int
-     * @param $only_keys bool if you have get only fields name
-     * @return array
+     * object type
+     * @var string
      */
-    public function items($mask = NULL, $only_keys = FALSE)
-    {
-        $obj = Object::factory( $this->_object_type );
-
-        if ( $mask === NULL )
-        {
-            return $obj->_items();
-        }
-
-        $output = array();
-
-        foreach ( $obj->_items() as $field => $item )
-        {
-            if ( $item & $mask )
-            {
-                if ( $only_keys )
-                {
-                    $output[] = $field;
-                }
-                else
-                {
-                    $output[$field] = $item;
-                }
-            }
-        }
-
-        return $output;
-    }
-
+    protected $_object_type = NULL;
 
     /**
-     * Declare items for pages
-     * @return array
+     * fields declaration from class propertis
+     * @var array
      */
-    protected function _items()
-    {
-        return array();
-    }
-
+    protected $_fields_declaration = array();
 
     /**
-     * If only update objects
-     * @return bool
+     * create new object instance
      */
-    public function only_update()
+    public function __construct()
     {
-        return $this->_only_update;
+        $this->_object_type = strtolower(substr(get_class($this), 6));
+        $this->_clean_fields();
     }
-
-
+    
     /**
-     * Initialize objects
+     * Prepare fields and fields declaration
      * @return void
      */
-    protected function __construct()
+    protected function _clean_fields()
     {
-        $this->_object_type = strtolower(substr(get_class($this), 6));        
+        foreach ( $this as $name => $value )
+        {
+            if ( $name[0] !== '_' )
+            {
+                foreach ( $value as $option )
+                {
+                    if ( isset ( $this->_fields_declaration[$name] ) )
+                    {
+                        $this->_fields_declaration[$name] = $this->_fields_declaration[$name] | $option;
+                    }
+                    else
+                    {
+                        $this->_fields_declaration[$name] = $option;   
+                    }
+                }
+            }
+        }
     }
 
-
     /**
-     * Get items for values
+     * Get fields array
      * @return array
      */
-    protected function _prepare_value()
+    protected function _get_fields()
     {
-        $output = array();
-
-        foreach ( $this->items() as $field => $item )
+        $fields = array();
+        
+        foreach ( $this as $name => $value )
         {
-            $output[$field] = NULL;
+            if ( $name[0] !== '_' )
+            {
+                $fields[$name] = $value;
+            }
+        }
+        
+        return $fields;
+    }
+    
+    /**
+     * Get object data as array
+     * @param  string $key   for array key
+     * @param  string $value for array value, if NULL get all fields
+     * @return array
+     */
+    public function as_array($key = NULL, $value = NULL)
+    {
+        return $this->_get_fields();
+    }
+    
+    /**
+     * object from array
+     * @param  array $arr
+     * @return object
+     */
+    public function from_array($arr)
+    {
+        foreach ( $arr as $key => $value )
+        {
+            if ( isset ( $this->$key ) )
+            {
+                $this->$key = $value;
+            }
+            else
+            {
+                throw new Exception('field `' . $key . '` is not exists!');
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set loaded info
+     * @param boolean $value
+     * @return object
+     */
+    public function set_loaded($value)
+    {
+        $this->_loaded = (bool) $value;
+
+        return $this;
+    }
+
+    /**
+     * Find object in db
+     * @param  int    $id
+     * @return object|NULL
+     */
+    public function find($id)
+    {
+        $values = DB::select()->from(self::TABLE_NAME)
+            ->where(self::TABLE_FIELD_PARENT_ID, '=', $id)
+            ->where(self::TABLE_FIELD_TYPE, '=', $this->_object_type)
+            ->execute()->as_array(self::TABLE_FIELD_NAME, self::TABLE_FIELD_VALUE);
+        
+        if ( empty ( $values ) )
+        {
+            return NULL;
+        }
+        
+        $values['id'] = $id;
+        $this->from_array ( $values );
+        $this->set_loaded ( TRUE );
+        
+        return $this;
+    }
+
+    /**
+     * Find one object with where equals condition
+     * @param  string $name  field name
+     * @param  string $value field value
+     * @return object|NULL
+     */
+    public function find_where($name, $value)
+    {
+        $output = $this->find_all_where($name, $value);
+        return isset($output[0]) ? $output[0] : NULL;
+    }
+
+    /**
+     * Find objects with where equals condition
+     * @param  string $name  field name
+     * @param  string $value field value
+     * @return array
+     */
+    public function find_all_where($name, $value)
+    {
+        $values = DB::select('o3.*')->from(array(self::TABLE_NAME, 'o1'))
+            ->join(array(self::TABLE_NAME, 'o2'))->on('o1.' . self::TABLE_FIELD_PARENT_ID, '=', 'o2.' . self::TABLE_FIELD_ID)
+            ->join(array(self::TABLE_NAME, 'o3'))->on('o3.' . self::TABLE_FIELD_PARENT_ID, '=', 'o2.' . self::TABLE_FIELD_ID)            
+            ->where('o1.' . self::TABLE_FIELD_NAME, '=', $name)
+            ->where('o1.' . self::TABLE_FIELD_VALUE, '=', $value)
+            ->where('o2.' . self::TABLE_FIELD_TYPE, '=', $this->_object_type)
+            ->execute()->as_array();
+
+        if ( empty ( $values ) )
+        {
+            return NULL;
+        }
+        
+        $output = array();
+        $values_arr = array();
+
+        foreach ( $values as $value )
+        {
+            $values_arr[$value[self::TABLE_FIELD_PARENT_ID]][$value[self::TABLE_FIELD_NAME]] = $value[self::TABLE_FIELD_VALUE];            
+        }
+        
+        foreach ( $values_arr as $id => $value )
+        {
+            $value['id'] = $id;
+            $output[] = Model::factory($this->_object_type)->from_array($value)->set_loaded ( TRUE );
         }
 
         return $output;
     }
 
-    public function _query_select( $columns = NULL )
-    {
-        return DB::select()->from($this->_table_name)
-            ->as_object()
-            ->where('object_type', '=', $this->_object_type);
-    }
-
-    /**
-     * Get object from name
-     * @param mixed $name
-     * @param bool $byId
-     * @return array
-     */
-    public function find($name, $byId = false)
-    {
-        $output = $this->_prepare_value();
-        $base_object = NULL;
-
-        if( $name instanceof Model_Object )
-        {
-            $base_object = $name;
-        }
-        else
-        {
-            $query = $this->_query_select()          
-                ->and_where('object_id', '=', NULL);  
-            
-            if ( $byId )
-            {                
-                $query->and_where('id', '=', $name);
-            }
-            else
-            {
-                $query->and_where('name', '=', $name);
-            }
-                    
-            $base_object = $query->execute()->as_array();
-
-            if ( !isset( $base_object[0] ) )
-            {
-                return NULL;
-            }
-
-            $base_object = $base_object[0];
-        }
-
-        $output['id'] = (int) $base_object->id;
-        $output['obj'] = $base_object->name;
-
-        $objects = $this->_query_select()
-                ->and_where('object_id', '=', $base_object->id)
-                ->execute();
-
-        foreach ( $objects as $object )
-        {
-            if ( key_exists($object->name, $output) )
-            {
-                $output[$object->name] = $object->value;
-            }
-        }
-
-        return (object) $output;
-    }
-
-    /**
-     * Get all object from one type
-     * @return array
-     */
-    public function find_all()
-    {
-        $base_output = array();
-
-        $base_objects = $this->_query_select()
-            ->and_where('object_id', '=', NULL)
-            ->execute();
-
-        foreach ( $base_objects as $base_object )
-        {
-            $output = $this->_prepare_value();
-            $output['id'] = (int) $base_object->id;
-            $output['obj'] = $base_object->name;
-
-            $objects = $this->_query_select()
-                ->and_where('object_id', '=', $base_object->id)
-                ->execute();
-
-            foreach ( $objects as $object )
-            {
-                if ( key_exists($object->name, $output) )
-                {
-                    $output[$object->name] = $object->value;
-                }
-            }
-
-            $base_output[$output['obj']] = (object) $output;
-        }
-
-        return $base_output;
-    }
+    public function find_all(){}
     
-    public function find_all_where($name, $value)
-    {
-        $base_output = array();
-        $objects = $this->_query_select()
-            ->and_where('name', '=', $name)
-            ->and_where('value', '=', $value)
-            ->execute();
-        
-        foreach ( $objects as $object )
-        {
-            $base_output[] = $this->find($object->object_id, true);
-        }
-        
-        return $base_output;
-    }
     
-    /**
-     * Save object
-     * @param string $name
-     * @param string $value
-     * @param int $object_id int or object
-     * @return object
-     */
-    protected function _create( $name, $value, $object_id = NULL )
-    {
-        $fields = array('object_id', 'object_type', 'name', 'value');
-        $values = array($object_id, $this->_object_type, $name, $value);
-        
-        $output = DB::insert( $this->_table_name, $fields )->values( $values )->execute();
-
-        return (object) array( 'id' => $output[0], 'object_type' => $this->_object_type, 'object_id' => $object_id, 'name' => $name, 'value' => $value);
-    }
-
-    /**
-     * Save object
-     * @param string $name
-     * @param string $value
-     * @param int $object_id int or object
-     * @param int $id id row if you have update name
-     * @return object
-     */
-    protected function _update( $name, $value, $object_id, $id = NULL )
-    {
-        $query = DB::update( $this->_table_name );
-
-        if ( $id === NULL )
-        {            
-            $count = DB::select()
-                ->from( $this->_table_name )
-                ->where( 'object_id', '=', $object_id )
-                ->and_where( 'object_type', '=', $this->_object_type )
-                ->and_where( 'name', '=', $name )
-                ->execute()->count();
-            
-            if ( $count === 0 )
-            {
-                $this->_create($name, $value, $object_id);
-            }
-            else
-            {            
-                $query
-                    ->set( array( 'value' => $value ) )
-                    ->where( 'object_id', '=', $object_id )
-                    ->and_where( 'object_type', '=', $this->_object_type )
-                    ->and_where( 'name', '=', $name )
-                    ->execute();
-            }
-        }
-        else
-        {
-            $query
-                ->set( array( 'name' => $name, 'value' => $value ) )
-                ->where( 'id', '=', $id )
-                ->and_where( 'object_type', '=', $this->_object_type )
-                ->execute();       
-        }
-
-        return (object) array( 'object_type' => $this->_object_type, 'object_id' => $object_id, 'name' => $name, 'value' => $value);
-    }
-
-    /**
-     * create value in object
-     * @param array $values
-     * @return Object
-     */
-    public function create( $values )
-    {
-        if ( $this->_only_update )
-        {
-            return NULL;
-        }
-
-        Database::instance()->begin();
-
-        $obj = $this->_create( $this->_process_obj($values['obj']), NULL );
-        $items = $this->items();
-
-        unset ( $items['obj'] );
-
-        foreach ( $items as $field => $mask )
-        {
-            $value = isset( $values[$field] ) ? $values[$field] : NULL;
-
-            if ( $mask & self::NOT_NULL )
-            {
-                $this->_validation( $field, $value );
-            }
-
-            $method_name = '_process_' . $field;
-
-            $value = ( method_exists( $this, $method_name ) )
-                ? $this->$method_name( $value, $obj->id )
-                : $value;
-
-            $this->_create( $field, $value, $obj->id );
-        }
-
-        Database::instance()->commit();
-
-        return $obj;
-    }
-
-    /**
-     * update values in object
-     * @param array $values
-     * @return Object
-     */
-    public function update( $values )
-    {
-        Database::instance()->begin();
-
-        $obj = $this->_update( $this->_process_obj($values['obj'], $values['id']), NULL, NULL, $values['id'] );
-        $items = $this->items();
-
-        unset ( $items['obj'] );
-
-        foreach ( $items as $field => $mask )
-        {
-            $value = isset( $values[$field] ) ? $values[$field] : NULL;
-
-            if ( $mask & self::NOT_NULL )
-            {
-                $this->_validation($field, $value);
-            }
-
-            $method_name = '_process_' . $field;
-
-            $value = ( method_exists($this, $method_name ) )
-                ? $this->$method_name( $value, $values['id'] )
-                : $value;
-
-            $this->_update($field, $value, $values['id']);
-        }
-
-        Database::instance()->commit();
-
-        return $obj;
-    }
-
-    /**
-     * save objects (create or update)
-     * @param array $values
-     * @return Object
-     */
-    public function save( $values )
-    {
-        $values = (array) $values;
-
-        if ( isset( $values['id'] ) AND $values['id'] > 0 )
-        {
-            return $this->update( $values );
-        }
-        else
-        {
-            return $this->create( $values );
-        }
-    }
-
-    /**
-     * Delete object
-     * @param string $name
-     * @return bool
-     */
-    public function delete( $name )
-    {
-        Database::instance()->begin();
-
-        if ( $this->_only_update )
-        {
-            return NULL;
-        }
-
-        $obj = $this->find($name);
-        
-        if ( $obj === NULL )
-        {
-            return FALSE;
-        }
-
-        DB::delete( $this->_table_name )
-            ->where( 'object_id', '=', $obj->id )
-            ->and_where( 'object_type', '=', $this->_object_type )
-            ->execute();
-
-        DB::delete( $this->_table_name )
-            ->where( 'id', '=', $obj->id )
-            ->and_where( 'object_type', '=', $this->_object_type )
-            ->execute();
-
-        Database::instance()->commit();
-
-        return TRUE;
-    }
-
-    /**
-     * Simple validation field
-     * @param string $field field name
-     * @param mixed $value value
-     * @param string $rule rule name
-     * @param array $rule_value validation rule value (eg. max length)
-     * @return bool
-     */
-    protected function _validation( $field, $value, $rule = 'not_empty', $rule_value = NULL )
-    {
-        $validation = new Validation(array($field => $value));
-        $validation->rule($field, $rule, $rule_value );
-
-        if ( !$validation->check() )
-        {
-            throw new Validation_Exception($validation);
-        }
-
-        return true;
-    }
-
-    /**
-     * Process main obj
-     * @param mixed $value
-     * @param int $id id base object
-     * @return string
-     */
-    protected function _process_obj( $value, $id = NULL )
-    {
-        $this->_validation('obj', $value);
-        $this->_validation('obj', $value, array($this, 'unique'), array($id, ':value'));
-
-        return URL::title( $value );
-    }
-
-    /**
-     * Default value for updated_at fields
-     * @param mixed $value
-     * @return string
-     */
-    protected function _process_updated_at( $value )
-    {
-        return date('Y-m-d H:i');
-    }
-
-    /**
-     * check if base object name is unique
-     * @param int $id
-     * @param string $value
-     * @return bool
-     */
-    public function unique( $id, $value )
-    {
-        $obj = $this->_query_select()
-            ->and_where( 'name', '=', $value )
-            ->and_where('object_id', '=', NULL)
-            ->execute()->as_array();
-
-        if ( ! isset ($obj[0]) )
-        {
-            return TRUE;
-        }
-
-        return ( $obj[0]->id == $id );
-    }
+    public function save(){}
+    public function delete(){}
 
 } // End Model_Object

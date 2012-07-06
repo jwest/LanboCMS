@@ -7,24 +7,41 @@
  */
 class Model_Page extends Object {
 
+    /**
+     * Route for page
+     * @var string
+     */
+    public $route = array(Object::SHOW, Object::EDIT, Object::FIELD_TEXT);
 
     /**
-     * Declare fields for page object
-     * @return array
+     * Title for page
+     * @var string
      */
-    protected function _items()
-    {
-        return array
-        (
-            'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
-            'category' => Object::SHOW | Object::EDIT | Object::FIELD_RELATION | Object::NOT_NULL,
-            'title' => Object::SHOW | Object::EDIT | Object::NOT_NULL,            
-            'content' => Object::EDIT | Object::FIELD_WYSIWYG,
-            'publish' => Object::EDIT | Object::FIELD_CHECKBOX,
-            'description' => Object::SHOW | Object::EDIT | Object::FIELD_TEXTAREA,
-            'updated_at' => Object::SHOW,
-        );
-    }
+    public $title = array(Object::SHOW, Object::EDIT, Object::FIELD_TEXT);
+
+    /**
+     * Html content
+     * @var string
+     */
+    public $content = array(Object::EDIT, Object::FIELD_WYSIWYG);
+
+    /**
+     * Last update date
+     * @var date
+     */
+    public $updated_at = array(Object::SHOW, Object::FIELD_TEXT);
+
+    /**
+     * Description page (for mate tag)
+     * @var string
+     */
+    public $description = array(Object::SHOW, Object::EDIT, Object::FIELD_TEXTAREA);
+
+    /**
+     * if page is publish
+     * @var boolean
+     */
+    public $publish = array(Object::SHOW, Object::EDIT, Object::FIELD_CHECKBOX);
 
 
 } // End Model_Page
