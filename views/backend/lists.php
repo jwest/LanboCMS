@@ -8,7 +8,7 @@
         </tr>
     </thead>
     <tbody>
-        <?php foreach ( $rows as $id => $row ): ?>
+        <?php foreach ( $rows as $row ): ?>
             <tr>
                 <?php foreach ( $fields as $field => $mask ): ?>
                     <td>
@@ -24,9 +24,9 @@
                     </td>
                 <?php endforeach; ?>
                 <td>                    
-                    <a class="label label-info" href="<?php echo URL::site( 'admin/' . $object_name .'/update/' . $id ); ?>"><i class="icon-cog icon-white"></i> <?php echo __('Edit'); ?></a>
+                    <a class="label label-info" href="<?php echo URL::site( 'admin/' . $object_name .'/update/' . $row->id ); ?>"><i class="icon-cog icon-white"></i> <?php echo __('Edit'); ?></a>
                     <?php if ( ! $only_update ): ?>
-                        <a class="label label-important" href="javascript: (confirm('<?php echo __('Do you have delete object?'); ?>')) ? window.location='<?php echo URL::site( 'admin/' . $object_name .'/delete/' . $id ); ?>' : 0 "><i class="icon-trash icon-white"></i> <?php echo __('Delete'); ?></a>
+                        <a class="label label-important" href="javascript: (confirm('<?php echo __('Do you have delete object?'); ?>')) ? window.location='<?php echo URL::site( 'admin/' . $object_name .'/delete/' . $row->id ); ?>' : 0 "><i class="icon-trash icon-white"></i> <?php echo __('Delete'); ?></a>
                     <?php endif; ?>
                 </td>
             </tr>

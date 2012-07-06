@@ -20,17 +20,17 @@ class Kohana_Model_Object extends Model {
     /**
      * Use for field type text
      */
-    const FIELD_TEXT = 8;
+    const FIELD_TEXT = 4;
+
+    /**
+     * Use for field type textarea
+     */
+    const FIELD_TEXTAREA = 8;
 
     /**
      * Use for field type wysiwyg
      */
     const FIELD_WYSIWYG = 16;
-
-    /**
-     * Use for field type textarea
-     */
-    const FIELD_TEXTAREA = 24;
 
     /**
      * Use for field type checkbox
@@ -148,6 +148,8 @@ class Kohana_Model_Object extends Model {
                         $this->_fields_declaration[$name] = $option;   
                     }
                 }
+
+                $this->$name = NULL;
             }
         }
     }
@@ -176,11 +178,11 @@ class Kohana_Model_Object extends Model {
      * @param  int   $option flags
      * @return array
      */
-    public function get_fields($option = NULL)
+    public function get_fields($option = NULL, $only_keys = FALSE)
     {
-        if ( $option !== NULL )
-        {
-            return $this->_fields_declaration;
+        if ( $option === NULL )
+        {            
+            return $only_keys ? array_keys($this->_fields_declaration) : $this->_fields_declaration;
         }
 
         $output = array();
@@ -189,11 +191,11 @@ class Kohana_Model_Object extends Model {
         {
             if ( $value & $option )
             {
-                $output[$name] = $value;
+                $output[$name] = $value;                
             }
         }
 
-        return $output;
+        return $only_keys ? array_keys($output) : $output;
     }
     
     /**
@@ -216,7 +218,7 @@ class Kohana_Model_Object extends Model {
     {
         foreach ( $arr as $key => $value )
         {
-            if ( isset ( $this->$key ) )
+            if ( isset ( $this->$key ) OR $this->$key === NULL )
             {
                 $this->$key = $value;
             }
@@ -366,8 +368,126 @@ class Kohana_Model_Object extends Model {
         return $output;
     }
     
-    
-    public function save(){}
-    public function delete(){}
+    /**
+     * Save (create or update object)
+     * @return int object id
+     */
+    public function save()
+    {
+        if ( $this->_loaded )
+        {
+            return $this->update();
+        }
+        else
+        {
+            return $this->create();
+        }
+    }
+
+    /**
+     * create object
+     * @return int object id
+     */
+    public function create()
+    {
+        Database::instance()->begin();
+
+        $id = $this->_create_row('object');
+        $fields = $this->get_fields(NULL, TRUE);
+        unset($fields['id']);
+
+        foreach ( $fields as $field) 
+        {
+            $this->_create_row($field, $this->$field, $id);
+        }
+
+        Database::instance()->commit();
+    }
+
+    /**
+     * create one db row
+     * @param  string $name
+     * @param  string $value
+     * @param  int    $parent_id
+     * @return int    row id
+     */
+    protected function _create_row($name, $value = NULL, $parent_id = NULL)
+    {
+        $fields = array(self::TABLE_FIELD_PARENT_ID, self::TABLE_FIELD_TYPE, self::TABLE_FIELD_NAME, self::TABLE_FIELD_VALUE);
+        $values = array($parent_id, $this->_object_type, $name, $value);
+        
+        $output = DB::insert( self::TABLE_NAME, $fields )->values( $values )->execute();
+
+        return $output[0];
+    }
+
+    /**
+     * update object
+     * @return int object id
+     */
+    public function update()
+    {
+        Database::instance()->begin();
+        
+        $fields = $this->get_fields(NULL, TRUE);
+        unset($fields['id']);
+
+        foreach ( $fields as $field) 
+        {
+            $this->_update_row($field, $this->$field, $this->id);
+        }
+
+        Database::instance()->commit();
+    }
+
+    /**
+     * update one db row
+     * @param  string $name
+     * @param  string $value
+     * @param  int    $parent_id
+     * @return int    row id
+     */
+    protected function _update_row($name, $value = NULL, $parent_id = NULL)
+    {
+        $output = DB::update( self::TABLE_NAME )
+            ->set( array( self::TABLE_FIELD_VALUE => $value ) )
+            ->where( self::TABLE_FIELD_TYPE, '=', $this->_object_type )
+            ->where( self::TABLE_FIELD_PARENT_ID, '=', $parent_id )
+            ->where( self::TABLE_FIELD_NAME, '=', $name )
+            ->execute();
+
+        if ( $output === 0 )
+        {
+            $count = DB::select()
+                ->from( self::TABLE_NAME )
+                ->where( self::TABLE_FIELD_TYPE, '=', $this->_object_type )
+                ->where( self::TABLE_FIELD_PARENT_ID, '=', $parent_id )
+                ->where( self::TABLE_FIELD_NAME, '=', $name )
+                ->execute()->count();
+
+            if ( $count === 0 )
+            {
+                return $this->_create_row($name, $value, $parent_id);
+            }
+        }
+
+        return $output;
+    }
+
+    /**
+     * Remove object from table
+     * @return void
+     */
+    public function delete()
+    {
+        Database::instance()->begin();
+
+        DB::delete( self::TABLE_NAME )
+            ->where( self::TABLE_FIELD_ID, '=', $this->id )
+            ->and_where( self::TABLE_FIELD_TYPE, '=', $this->_object_type )
+            ->execute();
+
+        Database::instance()->commit();
+    }
 
 } // End Model_Object

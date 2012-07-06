@@ -160,7 +160,7 @@ class Kohana_Controller_Backend extends Controller_Template {
         {
             try
             {
-                $post = Arr::extract($this->request->post(), $this->object_model->get_fields(Object::EDIT));
+                $post = Arr::extract($this->request->post(), $this->object_model->get_fields(Object::EDIT, TRUE));
                 $this->object_model->from_array($post)->save();
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
@@ -187,22 +187,19 @@ class Kohana_Controller_Backend extends Controller_Template {
      */
     public function action_update()
     {
-        $obj_name = $this->request->param( 'id' );
-
-        $obj = Object::factory( Inflector::singular($this->object_name) )->find($obj_name);
+        $id = $this->request->param( 'id' );
+        $this->object_model->find($id);
 
         $view = View::factory( 'backend/form' );
-        $view->id = $obj_name;
+        $view->id = $id;
         $view->error = NULL;
 
         if ( $this->request->method() === Request::POST )
         {
             try
-            {
-                $post = Arr::extract($this->request->post(), $this->object_model->items(Object::EDIT, TRUE));
-
-                Object::factory( Inflector::singular($this->object_name) )->save( array_merge( (array)$obj, $post) );
-
+            {                
+                $post = Arr::extract($this->request->post(), $this->object_model->get_fields(Object::EDIT, TRUE));
+                $this->object_model->from_array($post)->save();
                 $this->request->redirect( 'admin/' . $this->object_name );
             }
             catch(ORM_Validation_Exception $e)
@@ -219,7 +216,7 @@ class Kohana_Controller_Backend extends Controller_Template {
 
         $view->object_name = $this->object_name;
         $view->only_update = $this->object_only_update;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_name, array_merge( (array)$obj, $this->request->post() ) );
+        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_model->from_array($_POST));
 
         $this->template->content = $view;
     }
@@ -234,10 +231,8 @@ class Kohana_Controller_Backend extends Controller_Template {
             $this->request->redirect( 'admin/' . $this->object_name );
         }
 
-        $obj_name = $this->request->param( 'id' );
-
-        $obj = Object::factory( Inflector::singular($this->object_name) )->delete($obj_name);
-
+        $id = $this->request->param( 'id' );
+        $this->object_model->find($id)->delete();
         $this->request->redirect( 'admin/' . $this->object_name );
     }
 

@@ -60,7 +60,7 @@ class Kohana_LanboCMS_Objects {
             $fields_inputs[$field] = View::factory('backend/field/' . $input)
                 ->set('field_name', $field)
                 ->set('mask', $mask)
-                ->set('value', isset($obj[$field]) ? $obj[$field] : NULL )
+                ->set('value', isset($this->_object->$field) ? $this->_object->$field : NULL )
                 ->set('object_name', $this->_object->get_type())
                 ->set('view_values', $this->_view_values);                
         }
