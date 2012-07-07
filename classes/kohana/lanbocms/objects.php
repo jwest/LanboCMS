@@ -54,8 +54,8 @@ class Kohana_LanboCMS_Objects {
             $input = ( $mask & Object::FIELD_TEXTAREA ) ? $this->_fields_process('textarea', $field, $mask) : $input;
             $input = ( $mask & Object::FIELD_WYSIWYG ) ? $this->_fields_process('wysiwyg-'.$wysiwyg, $field, $mask) : $input;
             $input = ( $mask & Object::FIELD_CHECKBOX ) ? $this->_fields_process('checkbox', $field, $mask) : $input;
-            $input = ( $mask & Object::FIELD_MANY_TO_ONE ) ? $this->_fields_process('relation_show', $field, $mask) : $input;
-            $input = ( $mask & Object::FIELD_ONE_TO_MANY && Inflector::singular($field) == $field ) ? $this->_fields_process('relation_edit', $field, $mask) : $input;
+            $input = ( $mask & Object::FIELD_MANY_TO_ONE ) ? $this->_fields_process('relation_many_to_one', $field, $mask) : $input;
+            $input = ( $mask & Object::FIELD_ONE_TO_MANY ) ? $this->_fields_process('relation_one_to_many', $field, $mask) : $input;
 
             $fields_inputs[$field] = View::factory('backend/field/' . $input)
                 ->set('field_name', $field)
@@ -95,19 +95,19 @@ class Kohana_LanboCMS_Objects {
      * @param int $mask
      * @return void
      */
-    protected function _field_process_relation_edit($field, $mask)
+    protected function _field_process_relation_many_to_one($field, $mask)
     {
         $values_output = array();
         $values = Object::factory($field)->find_all();
         
-        if ( ! ( $mask & Object::NOT_NULL ) )
+        if ( ! ( $mask & Object::FIELD_NOT_NULL ) )
         {
             Arr::unshift($values_output, NULL, NULL);
         }
-        
+
         foreach ( $values as $value )
         {
-            $values_output[$value->obj] = $value->obj;
+            $values_output[$value->id] = $value->get_default_value();
         }
         
         $this->_view_values = array
@@ -116,9 +116,9 @@ class Kohana_LanboCMS_Objects {
         );
     }
     
-    protected function _field_process_relation_show($field, $mask)
+    protected function _field_process_relation_one_to_many($field, $mask)
     {
-        if ( empty($this->_object_value) )
+        if ( ! $this->_object->is_loaded() )
         {
             $this->_view_values = array
             (
@@ -127,8 +127,9 @@ class Kohana_LanboCMS_Objects {
             return;
         }
         
-        $values_output = Object::factory(Inflector::singular($field))->find_all_where(Inflector::singular($this->_object_name), $this->_object_value['obj']);
-        $fields = Object::factory(Inflector::singular($field))->items(Object::SHOW);
+        $relation_model = Object::factory(Inflector::singular($field));
+        $values_output = $relation_model->find_all_where($this->_object->get_type(), $this->_object->id);
+        $fields = $relation_model->get_fields(Object::SHOW);
 
         $this->_view_values = array
         (

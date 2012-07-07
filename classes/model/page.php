@@ -17,7 +17,7 @@ class Model_Page extends Object {
      * Route for page
      * @var string
      */
-    public $route = array(Object::SHOW, Object::EDIT, Object::FIELD_TEXT);
+    public $route = array(Object::FIELD_DEFAULT, Object::SHOW, Object::EDIT, Object::FIELD_TEXT);
 
     /**
      * Title for page
@@ -36,6 +36,12 @@ class Model_Page extends Object {
      * @var date
      */
     public $updated_at = array(Object::SHOW, Object::FIELD_TEXT);
+
+    /**
+     * category list
+     * @var array
+     */
+    public $category = array(Object::SHOW, Object::EDIT, Object::FIELD_MANY_TO_ONE);    
 
     /**
      * Description page (for mate tag)

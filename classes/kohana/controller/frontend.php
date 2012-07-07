@@ -28,7 +28,7 @@ class Kohana_Controller_Frontend extends Controller {
 
         if ( $obj === NULL OR $obj->publish != 1 )
         {
-            $obj = Object::Factory('page')->find(self::PAGE_404);
+            $obj = Object::Factory('page')->find_where('route', self::PAGE_404);
             $this->request->status = 404;
         }
 

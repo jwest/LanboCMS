@@ -6,21 +6,28 @@
  */
 class Model_Category extends Object {
 
+    /**
+     * id field is required
+     * @var int
+     */
+    public $id = array();
 
     /**
-     * Declare fields for page object
-     * @return array
+     * category title
+     * @var array
      */
-    protected function _items()
-    {
-        return array
-        (
-            'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,            
-            'title' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
-            'pages' => Object::EDIT | Object::FIELD_RELATION,
-            'updated_at' => Object::SHOW,
-        );
-    }
+    public $title = array(Object::FIELD_DEFAULT, Object::SHOW, Object::EDIT);
 
+    /**
+     * pages relation field
+     * @var array
+     */
+    public $pages = array(Object::FIELD_ONE_TO_MANY, Object::SHOW, Object::EDIT);
+
+    /**
+     * updated at field
+     * @var date
+     */
+    public $updated_at = array(Object::SHOW);
 
 } // End Model_Category

@@ -122,13 +122,13 @@ class Kohana_Controller_Backend extends Controller_Template {
     {
         $rows = array();
         
-        if ( $this->request->param('option') === NULL )
+        if ( $this->request->param('id') === NULL )
         {
             $rows = $this->object_model->find_all();
         }
         else
         {
-            $params = explode(':', $this->request->param('option'));
+            $params = explode(':', $this->request->param('id'));
             $rows = $this->object_model->find_all_where($params[0], $params[1]);
         }
 

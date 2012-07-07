@@ -53,6 +53,16 @@ class Kohana_Model_Object extends Model {
     const FIELD_FILE = 256;
 
     /**
+     * Use if field must be not null
+     */
+    const FIELD_NOT_NULL = 512;
+
+    /**
+     * Use if field is default for row
+     */
+    const FIELD_DEFAULT = 1024;
+
+    /**
      * Table name
      */
     const TABLE_NAME = 'objects';
@@ -113,6 +123,12 @@ class Kohana_Model_Object extends Model {
     protected $_object_type = NULL;
 
     /**
+     * Default field name
+     * @var string
+     */
+    protected $_default_field = 'id';
+
+    /**
      * fields declaration from class propertis
      * @var array
      */
@@ -137,16 +153,16 @@ class Kohana_Model_Object extends Model {
         {
             if ( $name[0] !== '_' )
             {
+                $this->_fields_declaration[$name] = 0;
+
                 foreach ( $value as $option )
                 {
-                    if ( isset ( $this->_fields_declaration[$name] ) )
-                    {
-                        $this->_fields_declaration[$name] = $this->_fields_declaration[$name] | $option;
-                    }
-                    else
-                    {
-                        $this->_fields_declaration[$name] = $option;   
-                    }
+                    $this->_fields_declaration[$name] = $this->_fields_declaration[$name] | $option;                    
+                }
+
+                if ( $this->_fields_declaration[$name] & self::FIELD_DEFAULT )
+                {
+                    $this->_default_field = $name;
                 }
 
                 $this->$name = NULL;
@@ -199,6 +215,15 @@ class Kohana_Model_Object extends Model {
     }
     
     /**
+     * Get default value for object (use in relations)
+     * @return mixed
+     */
+    public function get_default_value()
+    {
+        return $this->{$this->_default_field};
+    }
+
+    /**
      * Get object data as array
      * @param  string $key   for array key
      * @param  string $value for array value, if NULL get all fields
@@ -247,6 +272,15 @@ class Kohana_Model_Object extends Model {
     public function get_type_plural()
     {
         return Inflector::plural($this->_object_type);
+    }
+
+    /**
+     * check if model is loaded
+     * @return boolean
+     */
+    public function is_loaded()
+    {
+        return (bool) $this->_loaded;
     }
 
     /**
