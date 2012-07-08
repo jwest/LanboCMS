@@ -1,9 +1,10 @@
 <?php defined('SYSPATH') or die('No direct script access.');
+
 /**
- * Objects manage
+ * LanboCMS object process
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class LanboCMS_Objects extends Kohana_LanboCMS_Objects {
+class LanboCMS_Object extends Kohana_LanboCMS_Object {
 
-} // End LanboCMS_Objects
+} // End LanboCMS_Object

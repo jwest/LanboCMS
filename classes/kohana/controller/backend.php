@@ -177,7 +177,7 @@ class Kohana_Controller_Backend extends Controller_Template {
         }
 
         $view->object_name = $this->object_name;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_model);
+        $view->fields_inputs = LanboCMS_Object_Form::factory()->fields_views($this->object_model);
 
         $this->template->content = $view;
     }
@@ -216,7 +216,7 @@ class Kohana_Controller_Backend extends Controller_Template {
 
         $view->object_name = $this->object_name;
         $view->only_update = $this->object_only_update;
-        $view->fields_inputs = LanboCMS_Objects::factory()->fields_views($this->object_model->from_array($_POST));
+        $view->fields_inputs = LanboCMS_Object_Form::factory()->fields_views($this->object_model->from_array($_POST));
 
         $this->template->content = $view;
     }
