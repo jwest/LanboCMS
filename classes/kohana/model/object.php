@@ -360,6 +360,21 @@ class Kohana_Model_Object extends Model {
     }
 
     /**
+     * Count objects in db
+     * @return int
+     */
+    public function count_all_where($name, $value)
+    {
+        $value = DB::select(array(DB::expr('COUNT(1)'), 'total'))->from(self::TABLE_NAME)
+            ->where(self::TABLE_FIELD_TYPE, '=', $this->_object_type)
+            ->where(self::TABLE_FIELD_NAME, '=', $name)
+            ->where(self::TABLE_FIELD_VALUE, '=', $value)
+            ->execute()->get('total');
+
+        return $value;
+    }
+
+    /**
      * Find objects all objects
      * @return array
      */
@@ -371,6 +386,20 @@ class Kohana_Model_Object extends Model {
             ->execute()->as_array();
 
         return $this->_prepare_objects_list($values);
+    }
+
+    /**
+     * Count objects in db
+     * @return int
+     */
+    public function count_all()
+    {
+        $value = DB::select(array(DB::expr('COUNT(1)'), 'total'))->from(self::TABLE_NAME)
+            ->where(self::TABLE_FIELD_TYPE, '=', $this->_object_type)
+            ->where(self::TABLE_FIELD_PARENT_ID, '=', NULL)
+            ->execute()->get('total');
+
+        return $value;
     }
 
     /**
@@ -432,7 +461,8 @@ class Kohana_Model_Object extends Model {
 
         foreach ( $fields as $field) 
         {
-            $this->_create_row($field, $this->$field, $id);
+            $value = $this->_process_field($field, $this->$field);
+            $this->_create_row($field, $value, $id);
         }
 
         Database::instance()->commit();
@@ -468,7 +498,8 @@ class Kohana_Model_Object extends Model {
 
         foreach ( $fields as $field) 
         {
-            $this->_update_row($field, $this->$field, $this->id);
+            $value = $this->_process_field($field, $this->$field);
+            $this->_update_row($field, $value, $this->id);
         }
 
         Database::instance()->commit();
@@ -522,6 +553,33 @@ class Kohana_Model_Object extends Model {
             ->execute();
 
         Database::instance()->commit();
+    }
+
+    /**
+     * process field on create and update
+     * @param  string $name
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function _process_field($name, $value)
+    {
+        $method_name = '_process_field_'.strtolower($name);
+        
+        if ( method_exists($this, $method_name) )
+        {
+            return $this->$method_name($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Prepare date for updated_at field
+     * @return string datetime
+     */
+    protected function _process_field_updated_at()
+    {
+        return date('Y-m-d H:i:s', time());
     }
 
 } // End Model_Object

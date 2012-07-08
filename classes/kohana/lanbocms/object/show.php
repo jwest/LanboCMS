@@ -28,25 +28,11 @@ class Kohana_LanboCMS_Object_Show extends LanboCMS_Object {
     }
     
     protected function _field_process_relation_one_to_many($field, $mask)
-    {
-        if ( ! $this->_object->is_loaded() )
-        {
-            $this->_view_values = array
-            (
-                'rows' => array(),
-            );
-            return;
-        }
-        
+    {        
         $relation_model = Object::factory(Inflector::singular($field));
-        $values_output = $relation_model->find_all_where($this->_object->get_type(), $this->_object->id);
-        $fields = $relation_model->get_fields(Object::SHOW);
+        $count = $relation_model->count_all_where($this->_object->get_type(), $this->_object->id);
 
-        $this->_view_values = array
-        (
-            'fields' => $fields,
-            'rows' => $values_output,
-        );
+        $this->_view_values = array('id' => $this->_object->id, 'count' => $count);
     }
 
 } // End LanboCMS_Objects

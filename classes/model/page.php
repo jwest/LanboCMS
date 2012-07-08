@@ -32,12 +32,6 @@ class Model_Page extends Object {
     public $content = array(Object::EDIT, Object::FIELD_WYSIWYG);
 
     /**
-     * Last update date
-     * @var date
-     */
-    public $updated_at = array(Object::SHOW, Object::FIELD_TEXT);
-
-    /**
      * category list
      * @var array
      */
@@ -54,6 +48,12 @@ class Model_Page extends Object {
      * @var boolean
      */
     public $publish = array(Object::SHOW, Object::EDIT, Object::FIELD_CHECKBOX);
+
+    /**
+     * Last update date
+     * @var date
+     */
+    public $updated_at = array(Object::SHOW, Object::FIELD_TEXT);
 
 
 } // End Model_Page
