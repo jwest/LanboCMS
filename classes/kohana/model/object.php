@@ -462,6 +462,12 @@ class Kohana_Model_Object extends Model {
         foreach ( $fields as $field) 
         {
             $value = $this->_process_field($field, $this->$field);
+            
+            if ( $this->_fields_declaration[$field] & self::FIELD_NOT_NULL )
+            {
+                $this->_validation($field, $value, 'not_empty');
+            }
+
             $this->_create_row($field, $value, $id);
         }
 
@@ -499,6 +505,12 @@ class Kohana_Model_Object extends Model {
         foreach ( $fields as $field) 
         {
             $value = $this->_process_field($field, $this->$field);
+            
+            if ( $this->_fields_declaration[$field] & self::FIELD_NOT_NULL )
+            {
+                $this->_validation($field, $value, 'not_empty');
+            }
+
             $this->_update_row($field, $value, $this->id);
         }
 
@@ -553,6 +565,27 @@ class Kohana_Model_Object extends Model {
             ->execute();
 
         Database::instance()->commit();
+    }
+
+    /**
+     * Simple validation field
+     * @param string $field field name
+     * @param mixed $value value
+     * @param string $rule rule name
+     * @param array $rule_value validation rule value (eg. max length)
+     * @return bool
+     */
+    protected function _validation( $field, $value, $rule, $rule_value = NULL )
+    {
+        $validation = new Validation(array($field => $value));
+        $validation->rule($field, $rule, $rule_value );
+
+        if ( !$validation->check() )
+        {
+            throw new Validation_Exception($validation);
+        }
+
+        return true;
     }
 
     /**

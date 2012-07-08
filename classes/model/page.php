@@ -17,7 +17,7 @@ class Model_Page extends Object {
      * Route for page
      * @var string
      */
-    public $route = array(Object::FIELD_DEFAULT, Object::SHOW, Object::EDIT, Object::FIELD_TEXT);
+    public $route = array(Object::FIELD_DEFAULT, Object::SHOW, Object::EDIT, Object::FIELD_TEXT, Object::FIELD_NOT_NULL);
 
     /**
      * Title for page
