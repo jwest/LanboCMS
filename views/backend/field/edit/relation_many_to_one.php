@@ -6,7 +6,7 @@
     
     <select class="input-xlarge" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>">
         value="<?php echo $value; ?>"
-        <?php foreach($view_values['options'] as $key => $obj): ?>
+        <?php foreach($options as $key => $obj): ?>
             <option value="<?php echo $key; ?>" <?php if ($value == $key): ?> selected="<?php echo $key ?>"<?php endif; ?>><?php echo $obj; ?></option>
         <?php endforeach; ?>
     </select>

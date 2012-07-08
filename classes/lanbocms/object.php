@@ -5,6 +5,6 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class LanboCMS_Object extends Kohana_LanboCMS_Object {
+abstract class LanboCMS_Object extends Kohana_LanboCMS_Object {
 
 } // End LanboCMS_Object

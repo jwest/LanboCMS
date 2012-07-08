@@ -5,8 +5,8 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Kohana_LanboCMS_Object_Edit extends LanboCMS_Object {
-    
+class Kohana_LanboCMS_Object_Show extends LanboCMS_Object {
+
     /**
      * Prepare view for relations 
      * @param string $field field name
@@ -15,31 +15,18 @@ class Kohana_LanboCMS_Object_Edit extends LanboCMS_Object {
      */
     protected function _field_process_relation_many_to_one($field, $mask)
     {
-        $values_output = array();
-        $values = Object::factory($field)->find_all();
-        
-        if ( ! ( $mask & Object::FIELD_NOT_NULL ) )
-        {
-            Arr::unshift($values_output, NULL, NULL);
-        }
+    	$value_name = NULL;
 
-        foreach ( $values as $value )
-        {
-            $values_output[$value->id] = $value->get_default_value();
-        }
-        
-        $this->_view_values = array
-        (
-            'options' => $values_output,
-        );
+    	if ( $this->_object->$field !== NULL )
+    	{
+    		$value = Object::factory($field)->find($this->_object->$field);
+        	$value_name = $value->get_default_value();
+    	}
+
+        $this->_view_values = array('value_name' => $value_name);
+        return;
     }
     
-    /**
-     * Prepare view for relations
-     * @param string $field field name
-     * @param int $mask
-     * @return void
-     */
     protected function _field_process_relation_one_to_many($field, $mask)
     {
         if ( ! $this->_object->is_loaded() )

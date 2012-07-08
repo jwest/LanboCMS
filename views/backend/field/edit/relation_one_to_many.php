@@ -1,4 +1,4 @@
-<?php if( !empty($view_values['fields']) ): ?>
+<?php if( !empty($fields) ): ?>
 
 <label class="control-label" for="<?php echo $field_name; ?>">
     <?php echo __($field_name); ?>
@@ -9,7 +9,7 @@
     <table class="table table-striped">
         <thead>            
             <tr>
-                <?php foreach ( $view_values['fields'] as $field => $mask ): ?>
+                <?php foreach ( $fields as $field => $mask ): ?>
                     <?php if ( $field == Inflector::singular($object_name) ): ?>
                         <?php continue; ?>
                     <?php else: ?>
@@ -20,9 +20,9 @@
             </tr>            
         </thead>
         <tbody>
-            <?php foreach ( $view_values['rows'] as $id => $row ): ?>
+            <?php foreach ( $rows as $id => $row ): ?>
                 <tr>
-                    <?php foreach ( $view_values['fields'] as $field => $mask ): ?>
+                    <?php foreach ( $fields as $field => $mask ): ?>
                         <?php if ( $field == Inflector::singular($object_name) ): ?>
                             <?php continue; ?>
                         <?php else: ?>

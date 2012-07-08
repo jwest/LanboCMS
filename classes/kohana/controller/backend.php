@@ -132,6 +132,12 @@ class Kohana_Controller_Backend extends Controller_Template {
             $rows = $this->object_model->find_all_where($params[0], $params[1]);
         }
 
+        foreach ( $rows as $i => $row )
+        {
+            $rows[$i] = LanboCMS_Object::factory(LanboCMS_Object::SHOW, $row)->prepare();            
+            $rows[$i]['id'] = $row->id;
+        }
+
         $view = View::factory( 'backend/lists' );
         $view->object_name = $this->object_name;
         $view->fields = $this->object_model->get_fields(Object::SHOW);        
@@ -177,7 +183,7 @@ class Kohana_Controller_Backend extends Controller_Template {
         }
 
         $view->object_name = $this->object_name;
-        $view->fields_inputs = LanboCMS_Object_Form::factory()->fields_views($this->object_model);
+        $view->fields_inputs = LanboCMS_Object::factory(LanboCMS_Object::EDIT, $this->object_model)->prepare();
 
         $this->template->content = $view;
     }
@@ -216,7 +222,7 @@ class Kohana_Controller_Backend extends Controller_Template {
 
         $view->object_name = $this->object_name;
         $view->only_update = $this->object_only_update;
-        $view->fields_inputs = LanboCMS_Object_Form::factory()->fields_views($this->object_model->from_array($_POST));
+        $view->fields_inputs = LanboCMS_Object::factory(LanboCMS_Object::EDIT, $this->object_model->from_array($_POST))->prepare();
 
         $this->template->content = $view;
     }
