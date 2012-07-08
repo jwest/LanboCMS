@@ -12,6 +12,7 @@
         <?php echo Html::style( $media_path . '/css/bootstrap-responsive.css' ); ?>
         <style type="text/css">
             body { padding-top: 60px; padding-bottom: 40px; }
+            .form-horizontal .controls { border-left: 1px solid #CCC; padding-left: 10px; }
         </style>
 
         <?php echo Html::script( $media_path . '/js/jquery.min.js' ); ?>

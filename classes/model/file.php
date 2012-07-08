@@ -16,26 +16,29 @@ class Model_File extends Object {
 
 
     /**
-     * Declare fields for file object
-     * @return array
+     * id field is required
+     * @var int
      */
-    protected function _items()
-    {
-        return array
-        (
-            'obj' => Object::SHOW | Object::EDIT | Object::NOT_NULL,
-            'file' => Object::EDIT | Object::SHOW | Object::FIELD_FILE,
-            'updated_at' => Object::SHOW,
-        );
-    }
+    public $id = array(Object::FIELD_DEFAULT, Object::SHOW);
 
+    /**
+     * filename
+     * @var string
+     */
+    public $file = array(Object::FIELD_DEFAULT, Object::SHOW, Object::EDIT, Object::FIELD_FILE, Object::FIELD_NOT_NULL);
+
+    /**
+     * Last update date
+     * @var date
+     */
+    public $updated_at = array(Object::SHOW, Object::FIELD_TEXT);
 
     /**
      * File upload processed
      * @param  string $value file name
      * @return string
      */
-    protected function _process_file( $value )
+    protected function _process_field_file( $value )
     {
         $file = $_FILES['file'];
 

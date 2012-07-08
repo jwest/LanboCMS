@@ -4,6 +4,6 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Model_Object extends Kohana_Model_Object {
+abstract class Model_Object extends Kohana_Model_Object {
 
 } // End Model_Object

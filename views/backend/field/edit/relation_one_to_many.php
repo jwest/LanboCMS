@@ -4,7 +4,7 @@
     <?php echo __($field_name); ?>
 </label>
 
-<div class="controls">
+<div class="controls" style="text-align: right;">
     
     <table class="table table-striped">
         <thead>            
@@ -48,7 +48,7 @@
         </tbody>
     </table>
 
-    <a class="btn btn-primary" href="<?php echo URL::site( 'admin/' . Inflector::singular($field_name) .'/create/' ); ?>"><?php echo __('Create ' . Inflector::singular($field_name)); ?></a>
+    <a class="btn btn-primary btn-small" href="<?php echo URL::site( 'admin/' . Inflector::singular($field_name) .'/create/' ); ?>"><?php echo __('Create ' . Inflector::singular($field_name)); ?></a>
     
 </div>
 

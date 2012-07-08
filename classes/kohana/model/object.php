@@ -5,7 +5,7 @@
  *
  * @author Jakub Westfalewski <jwest@jwest.pl>
  */
-class Kohana_Model_Object extends Model {
+abstract class Kohana_Model_Object extends Model {
 
     /**
      * Use for show field
@@ -462,7 +462,7 @@ class Kohana_Model_Object extends Model {
         foreach ( $fields as $field) 
         {
             $value = $this->_process_field($field, $this->$field);
-            
+
             if ( $this->_fields_declaration[$field] & self::FIELD_NOT_NULL )
             {
                 $this->_validation($field, $value, 'not_empty');

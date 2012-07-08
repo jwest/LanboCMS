@@ -14,20 +14,22 @@ class Model_System extends Object {
      */
     protected $_only_update = TRUE;
 
+    /**
+     * id field is required
+     * @var int
+     */
+    public $id = array();
 
     /**
-     * Declare fields for page object
-     * @return array
+     * Setting name
+     * @var string
      */
-    protected function _items()
-    {
-        return array
-        (
-            'obj' => Object::SHOW | Object::NOT_NULL,
-            'value' => Object::SHOW | Object::EDIT,
-            'updated_at' => Object::SHOW,
-        );
-    }
+    public $name = array(Object::FIELD_DEFAULT, Object::SHOW, Object::EDIT, Object::FIELD_TEXT, Object::FIELD_NOT_NULL);
 
+    /**
+     * Setting value
+     * @var array
+     */
+    public $value = array(Object::FIELD_TEXTAREA, Object::SHOW, Object::EDIT);
 
 } // End Model_Article

@@ -35,7 +35,7 @@ class Model_Page extends Object {
      * category list
      * @var array
      */
-    public $category = array(Object::SHOW, Object::EDIT, Object::FIELD_MANY_TO_ONE);    
+    public $category = array(Object::SHOW, Object::EDIT, Object::FIELD_MANY_TO_ONE, Object::FIELD_NOT_NULL);    
 
     /**
      * Description page (for mate tag)

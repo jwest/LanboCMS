@@ -36,7 +36,7 @@ class Kohana_Auth_Object extends Auth {
             $password = $this->hash($password);
         }
 
-        $user = Object::factory( 'system' )->find( 'user-' . $username );
+        $user = Object::factory( 'system' )->find_where( 'name', 'user-' . $username );
         
         if ( $user !== NULL AND $user->value === $password)
         {
@@ -68,7 +68,7 @@ class Kohana_Auth_Object extends Auth {
      */
     public function password($username)
     {
-        $user = Object::factory( 'system' )->find( 'user-' . $username );
+        $user = Object::factory( 'system' )->find_where( 'name', 'user-' . $username );
 
         if ( $user !== NULL )
         {
