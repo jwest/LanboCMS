@@ -138,6 +138,13 @@ class Kohana_Controller_Backend extends Controller_Template {
             $rows[$i]['id'] = $row->id;
         }
 
+        if ( isset($_GET['json']) )
+        {
+            $this->auto_render = FALSE;
+            $this->response->body( json_encode( array_values ( $rows ) ) );
+            return;
+        }
+
         $view = View::factory( 'backend/lists' );
         $view->object_name = $this->object_name;
         $view->fields = $this->object_model->get_fields(Object::SHOW);        

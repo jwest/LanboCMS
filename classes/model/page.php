@@ -55,5 +55,15 @@ class Model_Page extends Object {
      */
     public $updated_at = array(Object::SHOW, Object::FIELD_TEXT);
 
+    /**
+     * process route field (check unique)
+     * @param  string $value
+     * @return string
+     */
+    protected function _process_field_route($value)
+    {
+        $this->_validation('route', $value, array($this, 'unique'), array('field'=>'route'));
+        return $value;
+    }
 
 } // End Model_Page

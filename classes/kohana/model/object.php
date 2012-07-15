@@ -615,4 +615,20 @@ abstract class Kohana_Model_Object extends Model {
         return date('Y-m-d H:i:s', time());
     }
 
+    /**
+     * Prepare date for updated_at field
+     * @return string datetime
+     */
+    public function unique($field)
+    {
+        $obj = Object::factory($this->_object_type)->find_where($field, $this->$field);
+
+        if ($obj == NULL)
+        {
+            return TRUE;
+        }
+
+        return ($obj->id == $this->id);
+    }
+
 } // End Model_Object
